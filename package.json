@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://anshdhariwal.github.io/calci/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -30,6 +31,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "terser": "^5.46.1",
     "vite": "^7.2.4"
   }
 }
