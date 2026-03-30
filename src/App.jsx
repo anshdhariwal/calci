@@ -5,8 +5,10 @@ import ManualEntry from './pages/ManualEntry';
 import UploadFlow from './pages/UploadFlow';
 
 function App() {
+  const basename = import.meta.env.MODE === 'production' ? '/calci' : '/';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />

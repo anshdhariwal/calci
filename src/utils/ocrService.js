@@ -107,7 +107,7 @@ export const performOCR = async (imageFile) => {
         return true;
       });
 
-      const name = nameTokens.join(' ').replace(/\s{2,}/g, ' ').trim().replace(/\||\-/g, '');
+      const name = nameTokens.join(' ').replace(/\s{2,}/g, ' ').trim().replace(/\||[-]/g, '');
 
       subjects.push({
         id: idCounter++,

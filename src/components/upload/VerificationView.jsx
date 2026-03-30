@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
 import { FaArrowLeft, FaInfoCircle, FaSearchPlus, FaSearchMinus, FaUndo } from 'react-icons/fa';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import ManualEntry from '../../pages/ManualEntry';

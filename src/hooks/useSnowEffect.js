@@ -3,7 +3,24 @@ import confetti from 'canvas-confetti';
 
 const useSnowEffect = () => {
   const [isSnowing, setIsSnowing] = useState(false);
+  const [theme, setTheme] = useState('dark');
   const animationFrameId = useRef(null);
+
+  // Listen for theme changes and disable snow in light mode
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      setTheme(currentTheme);
+      if (currentTheme === 'light' && isSnowing) {
+        setIsSnowing(false);
+      }
+    };
+
+    const observer = new MutationObserver(handleThemeChange);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    return () => observer.disconnect();
+  }, [isSnowing]);
 
   useEffect(() => {
     if (isSnowing) {
@@ -14,9 +31,13 @@ const useSnowEffect = () => {
       const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
       const frame = () => {
-        const timeLeft = animationEnd - Date.now();
-        // Lower ticks (duration) for lighter feel? No, keep it floaty.
+        // Stop animation after duration expires
+        if (Date.now() > animationEnd) {
+          setIsSnowing(false);
+          return;
+        }
         
+        // Lower ticks (duration) for lighter feel? No, keep it floaty.
         skew = Math.max(0.8, skew - 0.001);
 
         // Throttle: Only spawn snow every 4th frame (approx 15fps generation)
@@ -61,7 +82,11 @@ const useSnowEffect = () => {
     };
   }, [isSnowing]);
 
-  const toggleSnow = () => setIsSnowing(prev => !prev);
+  const toggleSnow = () => {
+    // Prevent snow effect in light theme
+    if (theme === 'light') return;
+    setIsSnowing(prev => !prev);
+  };
 
   return { isSnowing, toggleSnow };
 };
