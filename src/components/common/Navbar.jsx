@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { FaSnowflake, FaGithub } from 'react-icons/fa';
 import ThemeToggle from './ThemeToggle';
 import useSnowEffect from '../../hooks/useSnowEffect';
-import calciLogoUrl from '../../assets/calci.svg';
+
 import './Navbar.css';
 
 const Navbar = () => {
@@ -12,16 +12,15 @@ const Navbar = () => {
     <nav className="navbar glass">
       <div className="navbar-content">
         <Link to="/" className="logo-link" aria-label="CALCI Home">
-          <img src={calciLogoUrl} alt="Calci Logo" className="nav-logo-icon" />
+          <img src="/calci.svg" alt="Calci Logo" className="nav-logo-icon" />
           <div className="logo-wrapper">
-            <span className="logo-text"><span className="logo-accent">C</span>ALCI</span>
-            <span className="logo-subtitle">- The Intelligent Grade Calculator</span>
+            <span className="logo-text" data-text="CALCI"><span className="logo-accent">C</span>ALCI</span>
+            <span className="logo-subtitle">- Grade Calculator</span>
           </div>
         </Link>
         <div className="nav-actions">
-          
-          <button 
-            className={`icon-btn snow-btn ${isSnowing ? 'active' : ''}`} 
+          <button
+            className={`icon-btn snow-btn ${isSnowing ? 'active' : ''}`}
             onClick={toggleSnow}
             title="Let it snow"
             aria-label="Toggle snow effect"
