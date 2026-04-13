@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&family=Lexend+Deca:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
+
 .navbar {
   position: sticky;
   top: 1.6rem;
@@ -83,16 +85,29 @@
 }
 
 .logo-text {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 1.8rem;
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.logo-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--primary);
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .logo-subtitle {
+  font-family: 'Lexend Deca', sans-serif;
   font-size: 0.9rem;
   color: var(--secondary);
   font-weight: 500;
-  opacity: 0.8;
 }
 
 .logo-accent {
