@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSun, FaMoon } from 'react-icons/fa';
+import { Sun, Moon } from 'lucide-react';
 import './ThemeToggle.css';
 
 const ThemeToggle = () => {
@@ -16,11 +16,14 @@ const ThemeToggle = () => {
   return (
     <button 
       onClick={toggleTheme} 
-      className="theme-toggle-btn glass"
-      aria-label="Toggle Theme"
+      className="theme-toggle-btn"
+      aria-label={theme === 'light' ? "Switch to dark mode" : "Switch to light mode"}
     >
-      <span className="theme-text">{theme === 'light' ? 'Light' : 'Dark'}</span>
-      {theme === 'light' ? <FaMoon className="theme-icon" /> : <FaSun className="theme-icon sun" />}
+      {theme === 'light' ? (
+        <Moon className="theme-icon" size={20} aria-hidden="true" />
+      ) : (
+        <Sun className="theme-icon" size={20} aria-hidden="true" />
+      )}
     </button>
   );
 };
