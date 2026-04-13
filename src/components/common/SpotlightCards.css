@@ -1,0 +1,81 @@
+.spotlight-wrapper {
+  position: relative;
+  width: 100%;
+  background-color: transparent;
+  padding-bottom: 2rem;
+}
+
+.spotlight-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .spotlight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.spotlight-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.75rem;
+  transition: border-color 0.3s;
+  cursor: default;
+}
+
+[data-theme="light"] .spotlight-card {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.spotlight-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="light"] .spotlight-card:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.spotlight-card-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.spotlight-card-content h3 {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--text-color);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.spotlight-card-content p {
+  font-size: 0.9rem;
+  color: var(--secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.spotlight-icon-badge {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+}
