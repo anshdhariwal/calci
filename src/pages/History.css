@@ -1,0 +1,264 @@
+.history-page {
+  padding: 2.5rem 1rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
+}
+
+.history-header {
+  margin-bottom: 2rem;
+}
+
+.history-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.35rem;
+}
+
+.history-header p {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.9rem;
+}
+
+/* CGPA summary pill */
+.history-cgpa-banner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(124,58,237,0.15));
+  border: 1px solid rgba(96,165,250,0.25);
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.history-cgpa-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.history-cgpa-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.history-cgpa-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #60a5fa;
+}
+
+.history-cgpa-value.green { color: #34d399; }
+.history-cgpa-value.purple { color: #a78bfa; }
+
+/* Records list */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-record-card {
+  background: var(--glass-bg, rgba(255,255,255,0.04));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.09));
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: border-color 0.2s, background 0.2s;
+  flex-wrap: wrap;
+}
+
+.history-record-card:hover {
+  border-color: rgba(96,165,250,0.25);
+  background: rgba(255,255,255,0.06);
+}
+
+.history-record-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(37,99,235,0.15);
+  color: #60a5fa;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.history-record-info {
+  flex: 1;
+  min-width: 120px;
+}
+
+.history-record-sem {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary, #f1f5f9);
+  margin-bottom: 0.2rem;
+}
+
+.history-record-date {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.history-record-sgpa {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #60a5fa;
+  min-width: 60px;
+  text-align: right;
+}
+
+.history-record-sgpa.tier-elite  { color: #34d399; }
+.history-record-sgpa.tier-strong { color: #60a5fa; }
+.history-record-sgpa.tier-good   { color: #a78bfa; }
+.history-record-sgpa.tier-avg    { color: #fbbf24; }
+.history-record-sgpa.tier-low    { color: #f87171; }
+
+.history-record-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.hist-action-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hist-action-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+.hist-action-btn.danger:hover { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.3); }
+
+/* Edit modal */
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.edit-modal-box {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  animation: fadeInUp 0.3s ease;
+}
+
+.edit-modal-box h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  color: #f1f5f9;
+}
+
+.edit-modal-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+
+.edit-modal-input:focus { border-color: #2563eb; }
+
+.edit-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.edit-modal-actions button {
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: opacity 0.2s;
+}
+
+.edit-modal-actions .btn-cancel {
+  background: rgba(255,255,255,0.07);
+  color: #94a3b8;
+}
+
+.edit-modal-actions .btn-save {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+}
+
+.edit-modal-actions button:hover { opacity: 0.85; }
+
+.history-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #475569;
+}
+
+.history-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.history-empty h3 {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.history-empty p {
+  font-size: 0.875rem;
+}
+
+.history-loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.history-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

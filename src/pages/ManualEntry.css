@@ -381,4 +381,78 @@ option {
 .manual-container.verification-mode .table-header {
   margin-bottom: 0.5rem;
 }
- 
+
+/* ── Save to History ── */
+.save-history-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem auto 0;
+}
+
+.save-success-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  color: #34d399;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.save-login-hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.save-login-hint .auth-link {
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.save-modal-box {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  animation: popIn 0.25s ease;
+}
+
+.save-modal-box h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.save-modal-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.save-modal-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+.save-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
