@@ -239,3 +239,123 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── Auth nav buttons ── */
+.nav-btn-primary {
+  background: linear-gradient(135deg, rgba(37,99,235,0.35), rgba(124,58,237,0.35));
+  border-color: rgba(96,165,250,0.35);
+  color: #60a5fa;
+  font-weight: 600;
+}
+.nav-btn-primary:hover {
+  background: linear-gradient(135deg, rgba(37,99,235,0.55), rgba(124,58,237,0.55));
+  border-color: rgba(96,165,250,0.55);
+  color: #93c5fd;
+}
+
+/* ── User avatar / dropdown ── */
+.nav-user-wrap {
+  position: relative;
+}
+
+.nav-user-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(96,165,250,0.3);
+  border-radius: 12px;
+  color: #60a5fa;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.nav-user-avatar-btn:hover {
+  background: rgba(37,99,235,0.25);
+  border-color: rgba(96,165,250,0.5);
+}
+
+.nav-username {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  min-width: 200px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  animation: fadeInDown 0.2s ease;
+  z-index: 200;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.nav-dropdown-info {
+  padding: 1rem 1rem 0.75rem;
+}
+
+.nav-dropdown-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #f1f5f9;
+}
+
+.nav-dropdown-email {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-dropdown-hr {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin: 0;
+}
+
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 0 0 14px 14px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-dropdown-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: #e2e8f0;
+}
+
+.nav-dropdown-item.danger:hover {
+  background: rgba(239,68,68,0.1);
+  color: #f87171;
+}
+
+@media (max-width: 768px) {
+  .nav-username { display: none; }
+  .nav-btn { padding: 0.5rem; }
+  .nav-btn .btn-label { display: none; }
+}

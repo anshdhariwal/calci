@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { FaTrash, FaPlus, FaCalculator, FaInfoCircle } from 'react-icons/fa';
+import { FaTrash, FaPlus, FaCalculator, FaInfoCircle, FaSave, FaCheckCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { GRADE_POINTS, calculateSGPA } from '../utils/gradeUtils';
+import { saveSgpa } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import './ManualEntry.css';
 
 const ManualEntry = ({ initialData = [], isVerificationMode = false, onSgpaChange = () => {} }) => {
+  const { user } = useAuth();
   // Start with initialData or 5 empty rows
   const [subjects, setSubjects] = useState(
     initialData.length > 0 ? initialData : [
@@ -17,6 +21,11 @@ const ManualEntry = ({ initialData = [], isVerificationMode = false, onSgpaChang
   );
   const [sgpa, setSgpa] = useState(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  // Save to history
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [semesterName, setSemesterName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const getSgpaTier = (value) => {
     const n = parseFloat(value);
@@ -86,12 +95,32 @@ const ManualEntry = ({ initialData = [], isVerificationMode = false, onSgpaChang
     setSgpa(result);
     onSgpaChange(result);
     setShowResultModal(true);
+    setSaved(false); // reset saved state on new calculation
     if (parseFloat(result) >= 8.0) {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
+    }
+  };
+
+  const handleSaveToHistory = async () => {
+    if (!semesterName.trim()) return;
+    setSaving(true);
+    try {
+      await saveSgpa({
+        semester: semesterName.trim(),
+        sgpa: parseFloat(sgpa),
+        subjects: subjects.filter(s => s.credits && s.grade),
+      });
+      setSaved(true);
+      setShowSaveModal(false);
+      setSemesterName('');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -194,6 +223,57 @@ const ManualEntry = ({ initialData = [], isVerificationMode = false, onSgpaChang
             <p className="motivation">
               {getSgpaMessage(sgpa)}
             </p>
+
+            {/* Save to History */}
+            {user ? (
+              saved ? (
+                <div className="save-success-msg">
+                  <FaCheckCircle style={{ color: '#34d399' }} /> Saved to history!
+                </div>
+              ) : (
+                <button
+                  id="save-to-history-btn"
+                  className="btn btn-primary save-history-btn"
+                  onClick={() => setShowSaveModal(true)}
+                >
+                  <FaSave /> Save to History
+                </button>
+              )
+            ) : (
+              <p className="save-login-hint">
+                <Link to="/login" className="auth-link" onClick={() => setShowResultModal(false)}>Sign in</Link> to save your result.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save Modal */}
+      {showSaveModal && (
+        <div className="result-modal-overlay" role="dialog" onClick={() => setShowSaveModal(false)}>
+          <div className="save-modal-box" onClick={e => e.stopPropagation()}>
+            <h3>Name this Semester</h3>
+            <input
+              id="semester-name-input"
+              type="text"
+              className="save-modal-input"
+              placeholder="e.g. Semester 3"
+              value={semesterName}
+              onChange={e => setSemesterName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSaveToHistory()}
+              autoFocus
+            />
+            <div className="save-modal-actions">
+              <button className="btn" onClick={() => setShowSaveModal(false)}>Cancel</button>
+              <button
+                id="confirm-save-btn"
+                className="btn btn-primary"
+                onClick={handleSaveToHistory}
+                disabled={saving || !semesterName.trim()}
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
           </div>
         </div>
       )}
