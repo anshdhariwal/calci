@@ -1,0 +1,3 @@
+# calci
+
+A calculator project.
