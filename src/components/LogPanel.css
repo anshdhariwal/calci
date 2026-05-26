@@ -1,0 +1,16 @@
+.log-section {
+  background: #141418;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  max-height: 180px;
+  overflow-y: auto;
+  color: #777;
+}
+
+.log-line.ok { color: #6ee7b7; }
+.log-line.warn { color: #fbbf24; }
+.log-line.err { color: #f87171; }
