@@ -1,5 +1,6 @@
 # dependencies
 node_modules/
+.agents/
 .pnp
 .pnp.js
 
