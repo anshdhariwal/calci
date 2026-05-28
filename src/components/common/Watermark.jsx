@@ -3,16 +3,16 @@ import './Watermark.css';
 
 const Watermark = () => {
   return (
-    <a
-      href="https://github.com/anshdhariwal"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="watermark-badge"
-    >
+    <div className="watermark-badge">
       <FaCode className="watermark-icon" />
-      <span className="watermark-text">Dev @anshdhariwal</span>
+      <span className="watermark-text">
+        Devs:{' '}
+        <a href="https://github.com/anshdhariwal" target="_blank" rel="noopener noreferrer" className="watermark-link">@anshdhariwal</a>
+        {' & '}
+        <a href="https://github.com/jigyasaphogat" target="_blank" rel="noopener noreferrer" className="watermark-link">@jigyasaphogat</a>
+      </span>
       <FaGithub className="watermark-icon" />
-    </a>
+    </div>
   );
 };
 
