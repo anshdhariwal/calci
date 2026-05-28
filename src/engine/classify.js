@@ -1,4 +1,4 @@
-const GRADE = /^[A-Fa-fOoSsPpEe][+\-]?$|^[Ee][Xx]$|^[Aa][Bb]$|^[Ss][Gg]$|^[Ff]$/
+const GRADE = /^[A-Fa-fOoSsPpEeIi][+\-]?$|^[Ee][Xx]$|^[Aa][Bb]$|^[Ss][Gg]$|^[Ff]$/
 const CREDIT = /^\d+(\.\d+)?$/
 const SUBJ = /[A-Za-z]{2,}/
 
@@ -15,8 +15,12 @@ function isHeader(row) {
   return row.some((c) => /subj|course|credit|grade|mark|paper|name|sl|no/i.test(c.text || ''))
 }
 
+/**
+ * Map raw OCR grid columns to subject/credits/grade.
+ * Returns { rows, colMap } where colMap = { subject, credits, grade } column indices.
+ */
 export function mapCols(raw, det, log) {
-  if (!raw || raw.length < 2) return []
+  if (!raw || raw.length < 2) return { rows: [], colMap: null }
 
   const nc = raw[0].length
   const score = Array.from({ length: nc }, () => ({ subject: 0, credit: 0, grade: 0, other: 0 }))
@@ -56,9 +60,11 @@ export function mapCols(raw, det, log) {
 
   if (sc === -1 || cc === -1 || gc === -1) {
     log?.(`Column map failed S:${sc} Cr:${cc} G:${gc}`, 'warn')
-    return []
+    return { rows: [], colMap: null }
   }
   log?.(`Column map Subject:${sc} Credits:${cc} Grade:${gc}`, 'ok')
+
+  const colMap = { subject: sc, credits: cc, grade: gc }
 
   const start = isHeader(raw[0]) ? 1 : 0
   const out = []
@@ -72,5 +78,6 @@ export function mapCols(raw, det, log) {
     out.push({ subject, credits, grade, conf })
   }
 
-  return out
+  return { rows: out, colMap }
 }
+

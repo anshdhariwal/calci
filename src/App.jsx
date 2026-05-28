@@ -1,18 +1,18 @@
-import './App.css'
-import Scan from './pages/Scan.jsx'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home.jsx';
+import Watermark from './components/common/Watermark.jsx';
 
 function App() {
   return (
-    <>
-      <header className="app-header">
-        <span className="logo">CALCI</span>
-        <span className="logo-sub">// grade table ocr engine v2.0</span>
-      </header>
-      <main className="app-main">
-        <Scan />
+    <Router>
+      <main style={{ minHeight: '80vh', padding: '0.5rem 1rem' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+        </Routes>
       </main>
-    </>
-  )
+      <Watermark />
+    </Router>
+  );
 }
 
-export default App
+export default App;

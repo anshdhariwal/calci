@@ -24,14 +24,31 @@ export async function initTess(log, prog) {
   })
 
   await worker.setParameters({
-    tessedit_pageseg_mode: '6',
+    tessedit_pageseg_mode: '7',        // single text line — better for individual cells
     preserve_interword_spaces: '1',
   })
 
-  log?.('Tesseract ready', 'ok')
+  log?.('Tesseract ready (PSM 7)', 'ok')
   return worker
 }
 
 export function getWorker() {
   return worker
+}
+
+/**
+ * Temporarily set Tesseract parameters for a targeted OCR pass.
+ * Call with null to reset to defaults.
+ */
+export async function setWorkerParams(params) {
+  if (!worker) return
+  if (params === null) {
+    await worker.setParameters({
+      tessedit_pageseg_mode: '7',
+      preserve_interword_spaces: '1',
+      tessedit_char_whitelist: '',  // clear any whitelist
+    })
+  } else {
+    await worker.setParameters(params)
+  }
 }
