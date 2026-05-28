@@ -346,37 +346,40 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="ls-how-section">
+      <section className="ls-how-section container">
         <h2 className="section-title">How it Works</h2>
-        
-        <div className="ls-track-container">
-          <div className="ls-how-track"></div>
-          
-          <div className="ls-how-transfer">
-            <Zap size={14} strokeWidth={3} />
+        <p className="section-subtitle">
+          From snapshot to score in three simple steps.
+        </p>
+
+        <div className="how-it-works-grid">
+          <div className="how-step-card theme-blue">
+            <div className="how-step-number">01</div>
+            <div className="how-step-icon">
+              <Upload size={24} />
+            </div>
+            <h3>Upload Image</h3>
+            <p>Select your semester grade sheet from your files or take a photo directly using your camera.</p>
+            <div className="how-step-connector"></div>
           </div>
 
-          <div className="ls-how-nodes">
-            <div className="ls-how-node">
-              <div className="node-content">
-                <h3>1. Upload</h3>
-                <p>Take a clear screenshot of your semester result table.</p>
-              </div>
+          <div className="how-step-card theme-indigo">
+            <div className="how-step-number">02</div>
+            <div className="how-step-icon">
+              <Zap size={24} />
             </div>
-            
-            <div className="ls-how-node">
-              <div className="node-content">
-                <h3>2. Verify</h3>
-                <p>Review the extracted data side-by-side with your image.</p>
-              </div>
-            </div>
+            <h3>OCR Processing</h3>
+            <p>Our client-side engine preprocesses the image and parses table lines to extract subjects, credits, and grades.</p>
+            <div className="how-step-connector"></div>
+          </div>
 
-            <div className="ls-how-node">
-              <div className="node-content">
-                <h3>3. Result</h3>
-                <p>Your SGPA is calculated instantly. Celebrate your success!</p>
-              </div>
+          <div className="how-step-card theme-green">
+            <div className="how-step-number">03</div>
+            <div className="how-step-icon">
+              <Calculator size={24} />
             </div>
+            <h3>Calculate SGPA</h3>
+            <p>Verify the parsed values in the editable table, make corrections, and get your SGPA calculated instantly.</p>
           </div>
         </div>
       </section>
