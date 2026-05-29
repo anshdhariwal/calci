@@ -233,6 +233,10 @@ const Footer = () => {
             <a href="https://github.com/anshdhariwal" target="_blank" rel="noopener noreferrer">
               @anshdhariwal
             </a>
+            {' '}and{' '}
+            <a href="https://github.com/jigyasaphogat" target="_blank" rel="noopener noreferrer">
+              @jigyasaphogat
+            </a>
           </span>
         </div>
       </div>

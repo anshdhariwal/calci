@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useCallback, useState } from 'react';
 import { FaSnowflake } from 'react-icons/fa';
@@ -155,6 +155,7 @@ const AnimatedToggle = ({
 };
 
 const Navbar = () => {
+  const loc = useLocation();
   const { isSnowing, toggleSnow } = useSnowEffect();
   const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -216,6 +217,7 @@ const Navbar = () => {
           {['Home', 'Smart Upload', 'Manual Entry', 'Repository'].map((text, idx) => {
             const path = text === 'Home' ? '/' : text === 'Smart Upload' ? '/upload' : text === 'Manual Entry' ? '/manual' : 'https://github.com/anshdhariwal/calci';
             const isExternal = path.startsWith('http');
+            const isActive = !isExternal && (path === '/' ? loc.pathname === '/' : loc.pathname.startsWith(path));
             return (
               <motion.div key={text} custom={idx} variants={centerLinksVariants}>
                 {isExternal ? (
@@ -223,8 +225,11 @@ const Navbar = () => {
                     {text}
                   </a>
                 ) : (
-                  <Link to={path} className="nav-link">
+                  <Link to={path} className={`nav-link ${isActive ? 'nav-link-active' : ''}`}>
                     {text}
+                    {isActive && (
+                      <motion.span layoutId="nav-dot" className="nav-active-dot" />
+                    )}
                   </Link>
                 )}
               </motion.div>
