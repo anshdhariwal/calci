@@ -1,14 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
-import { Camera, Image, ShieldCheck, Sparkles, Upload, Zap } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Camera, Image, ShieldCheck, Sparkles, Upload, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
+import { Cropper } from 'react-advanced-cropper';
+import { useNavigate } from 'react-router-dom';
+import { run } from '../engine/pipeline.js';
+import 'react-advanced-cropper/dist/style.css';
 import './Upload.css';
 
 const UploadPage = () => {
+  const navigate = useNavigate();
   const fref = useRef(null);
   const cref = useRef(null);
+  const cropref = useRef(null);
   const [file, setfile] = useState(null);
   const [prev, setprev] = useState('');
   const [drag, setdrag] = useState(false);
   const [err, seterr] = useState('');
+  const [cropmode, setcropmode] = useState(false);
+  const [busy, setbusy] = useState(false);
+  const [logs, setlogs] = useState([]);
+  const [progress, setprogress] = useState(null);
 
   const pref = useRef(null);
 
@@ -146,16 +156,88 @@ const UploadPage = () => {
   const pick = (picked) => {
     if (!picked) return;
     const ext = picked.name.split('.').pop()?.toLowerCase();
-    const allowedExts = ['png', 'jpg', 'jpeg', 'heic', 'webp'];
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/heic', 'image/heif'];
+    const allowedExts = ['png', 'jpg', 'jpeg'];
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     const isAllowed = allowedTypes.includes(picked.type) || allowedExts.includes(ext);
     if (!isAllowed) {
-      seterr('Unsupported file format. Please use PNG, JPG, HEIC, or WEBP.');
+      seterr('Unsupported file format. Please use PNG, JPG, or JPEG.');
       return;
     }
     seterr('');
     setfile(picked);
+    setcropmode(false);
   };
+
+  const onrotate = useCallback((deg) => {
+    if (cropref.current) {
+      cropref.current.rotateImage(deg);
+    }
+  }, []);
+
+  const onflip = useCallback(() => {
+    if (cropref.current) {
+      cropref.current.flipImage(true, false);
+    }
+  }, []);
+
+  const onreset = useCallback(() => {
+    if (cropref.current) {
+      cropref.current.reset();
+    }
+  }, []);
+
+  const onscan = useCallback(async () => {
+    if (!cropref.current) return;
+    const canvas = cropref.current.getCanvas();
+    if (!canvas) return;
+    setcropmode(false);
+    setbusy(true);
+    setlogs([]);
+    setprogress({ pct: 0, label: 'Initializing...' });
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        setbusy(false);
+        seterr('Failed to extract crop area.');
+        return;
+      }
+      const cropped = new File([blob], file.name, { type: 'image/jpeg' });
+      setfile(cropped);
+      const url = URL.createObjectURL(cropped);
+      try {
+        const img = await new Promise((resolve, reject) => {
+          const i = new window.Image();
+          i.src = url;
+          i.onload = () => resolve(i);
+          i.onerror = (e) => reject(e);
+        });
+        const logCallback = (msg, type = '') => {
+          const ts = new Date().toTimeString().slice(0, 8);
+          setlogs((prev) => [...prev, { time: ts, msg, type }]);
+        };
+        const progCallback = (pct, label) => {
+          setprogress({ pct, label });
+        };
+        const res = await run(img, {
+          log: logCallback,
+          prog: progCallback,
+          previewCanvas: document.createElement('canvas'),
+          workCanvas: document.createElement('canvas'),
+        });
+        if (!res.rows || res.rows.length === 0) {
+          logCallback('No table found. Try a clearer image.', 'warn');
+          seterr('No table detected. Please retry with a clearer image.');
+        } else {
+          logCallback(`Done, ${res.rows.length} rows extracted`, 'ok');
+          navigate('/results', { state: { rows: res.rows } });
+        }
+      } catch (e) {
+        seterr('OCR Error: ' + e.message);
+      } finally {
+        setbusy(false);
+        URL.revokeObjectURL(url);
+      }
+    }, 'image/jpeg', 0.95);
+  }, [file, navigate]);
 
   const onchange = (event) => {
     const picked = event.target.files?.[0];
@@ -180,8 +262,188 @@ const UploadPage = () => {
     pick(picked);
   };
 
+  if (busy) {
+    return (
+      <section key="loading-view" className="upload-page loading-active">
+        <div className="upload-bg" aria-hidden="true">
+          <div className="upload-grid"></div>
+          <div className="upload-blob upload-blob-a"></div>
+          <div className="upload-blob upload-blob-b"></div>
+        </div>
+
+        <div className="loading-screen container">
+          <div className="upload-panel scan-loading-panel">
+            <span className="edge-light" />
+            <div className="aesthetic-loader-container">
+              <div className="loader"></div>
+              <footer className="scan-loading-footer">
+                <span>Analyzing Image...</span>
+              </footer>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (cropmode && prev) {
+    return (
+      <section key="crop-view" className="upload-page crop-active">
+        <div className="upload-bg" aria-hidden="true">
+          <div className="upload-grid"></div>
+          <div className="upload-blob upload-blob-a"></div>
+          <div className="upload-blob upload-blob-b"></div>
+        </div>
+
+        <div className="crop-screen container">
+          <div className="crop-sidebar">
+            <button
+              type="button"
+              className="crop-back"
+              onClick={() => setcropmode(false)}
+              title="Back to upload"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div className="crop-info">
+              <h2 className="crop-title">Crop the image</h2>
+              <p className="crop-desc">
+                Select only the table area from your image. Use scroll to zoom and drag to pan.
+              </p>
+
+              <div className="crop-hints">
+                <div className="crop-hint">
+                  <Sparkles size={18} />
+                  <span>Scroll to zoom in/out</span>
+                </div>
+                <div className="crop-hint">
+                  <Maximize size={18} />
+                  <span>Drag corners to resize</span>
+                </div>
+                <div className="crop-hint">
+                  <Image size={18} />
+                  <span>Drag image to reposition</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="upload-cta crop-proceed"
+              onClick={onscan}
+            >
+              Start smart scan
+            </button>
+          </div>
+
+          <div className="crop-main">
+            <div className="crop-canvas-wrap">
+              <Cropper
+                ref={cropref}
+                src={prev}
+                className="crop-cropper"
+                stencilProps={{
+                  grid: true,
+                  handlers: {
+                    eastNorth: true,
+                    north: false,
+                    westNorth: true,
+                    west: false,
+                    westSouth: true,
+                    south: false,
+                    eastSouth: true,
+                    east: false
+                  },
+                  lines: {
+                    north: true,
+                    east: true,
+                    south: true,
+                    west: true
+                  }
+                }}
+                imageRestriction="stencil"
+                transitions={true}
+                defaultSize={(state) => ({
+                  width: state.imageSize.width,
+                  height: state.imageSize.height
+                })}
+                defaultPosition={(state) => ({
+                  left: 0,
+                  top: 0
+                })}
+              />
+            </div>
+
+            <div className="crop-nav">
+              <button
+                type="button"
+                className="crop-nav-btn"
+                onClick={onflip}
+                title="Flip horizontal"
+              >
+                <FlipHorizontal size={16} />
+              </button>
+              <button
+                type="button"
+                className="crop-nav-btn"
+                onClick={() => onrotate(90)}
+                title="Rotate clockwise"
+              >
+                <RotateCw size={16} />
+              </button>
+              <button
+                type="button"
+                className="crop-nav-dot"
+                onClick={onreset}
+                title="Reset"
+                style={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.35)' }}
+              >
+                <RefreshCw size={14} />
+              </button>
+              <button
+                type="button"
+                className="crop-nav-btn"
+                onClick={() => onrotate(-90)}
+                title="Rotate counter-clockwise"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button
+                type="button"
+                className="crop-nav-btn"
+                onClick={() => {
+                  if (cropref.current) {
+                    cropref.current.setCoordinates(({ imageSize }) => ({
+                      width: imageSize.width,
+                      height: imageSize.height,
+                      left: 0,
+                      top: 0
+                    }));
+                  }
+                }}
+                title="Fit to image"
+              >
+                <Maximize size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <input
+          ref={fref}
+          className="upload-input"
+          type="file"
+          accept="image/png, image/jpeg, image/jpg"
+          onChange={onchange}
+        />
+      </section>
+    );
+  }
+
   return (
     <section
+      key="upload-view"
       className={`upload-page ${drag ? 'is-drag' : ''}`}
       onDragOver={ondrag}
       onDragLeave={onleave}
@@ -207,8 +469,7 @@ const UploadPage = () => {
             <span className="upload-title-accent">clean results.</span>
           </h1>
           <p className="upload-sub">
-            Drop a clear screenshot or a phone photo. Calci detects the table,
-            fixes common OCR slips, and keeps everything on your device.
+            Drop a clear screenshot or a phone photo. Calci detects the table, fixes common OCR slips, and keeps everything on your device.
           </p>
 
           <div className="upload-points">
@@ -225,7 +486,6 @@ const UploadPage = () => {
               <span>Local processing only, no cloud upload</span>
             </div>
           </div>
-
         </div>
 
         <div className="upload-panel" ref={pref} onPointerMove={onmove}>
@@ -284,8 +544,7 @@ const UploadPage = () => {
                 <div className="upload-formats">
                   <span className="upload-fmt-tag">PNG</span>
                   <span className="upload-fmt-tag">JPG</span>
-                  <span className="upload-fmt-tag">HEIC</span>
-                  <span className="upload-fmt-tag">WEBP</span>
+                  <span className="upload-fmt-tag">JPEG</span>
                 </div>
               </div>
             )}
@@ -295,7 +554,7 @@ const UploadPage = () => {
             {file ? (
               <span>{Math.round(file.size / 1024)} KB | {file.type.replace('image/', '').toUpperCase()}</span>
             ) : (
-              <span>PNG, JPG, HEIC up to 10MB</span>
+              <span>PNG, JPG, JPEG up to 10MB</span>
             )}
           </div>
 
@@ -304,14 +563,19 @@ const UploadPage = () => {
               <Image size={18} />
               {file ? 'Change image' : 'Choose image'}
             </button>
-            <button type="button" className="upload-btn-secondary" onClick={() => cref.current?.click()}>
+            <button type="button" className="upload-btn-secondary upload-btn-camera" onClick={() => cref.current?.click()}>
               <Camera size={18} />
               Use camera
             </button>
           </div>
 
-          <button type="button" className="upload-cta" disabled={!file}>
-            Start smart scan
+          <button
+            type="button"
+            className="upload-cta"
+            onClick={() => setcropmode(true)}
+            disabled={!file}
+          >
+            Proceed
           </button>
         </div>
       </div>
@@ -320,14 +584,14 @@ const UploadPage = () => {
         ref={fref}
         className="upload-input"
         type="file"
-        accept="image/png, image/jpeg, image/webp, .heic"
+        accept="image/png, image/jpeg, image/jpg"
         onChange={onchange}
       />
       <input
         ref={cref}
         className="upload-input"
         type="file"
-        accept="image/png, image/jpeg, image/webp, .heic"
+        accept="image/png, image/jpeg, image/jpg"
         capture="environment"
         onChange={onchange}
       />
