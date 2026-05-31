@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { Download, Plus, Share2, Trash2, X, ZoomIn, ZoomOut, Edit3, RefreshCw } from 'lucide-react';
+import { Download, Plus, Share2, Trash2, X, Edit3, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VALID_GRADES, GRADE_POINTS, calcSGPA } from '../engine/gradeUtils.js';
+import { generateResultCard } from '../utils/imageGenerator.js';
 import './Result.css';
 
 const ResultPage = () => {
   const loc = useLocation();
-  const nav = useNavigate();
   const st = loc.state || {};
   const base = Array.isArray(st.rows) ? st.rows : [];
   const shot = typeof st.image === 'string' ? st.image : '';
@@ -18,18 +18,16 @@ const ResultPage = () => {
     subject: r.subject || '',
     credits: r.credits || '',
     grade: r.grade || '',
-    isManual: r.isManual !== undefined ? r.isManual : false, // Preserve OCR vs manual flag
+    isManual: r.isManual !== undefined ? r.isManual : false,
   })));
   const [zoom, setzoom] = useState(1);
   const [pos, setpos] = useState({ x: 0, y: 0 });
   const [drag, setdrag] = useState(false);
   const [sgpa, setsgpa] = useState(null);
-  const [note, setnote] = useState('');
   const [pop, setpop] = useState(false);
   const [name, setname] = useState('');
   const [nameErr, setnameErr] = useState(false);
   const [busy, setbusy] = useState(false);
-  const [err, seterr] = useState('');
   const [errors, seterrors] = useState({ credits: [], grades: [] });
   const [editingId, setEditingId] = useState(null);
 
@@ -174,10 +172,8 @@ const ResultPage = () => {
     }
 
     seterrors({ credits: [], grades: [] })
-    seterr('')
     const score = calcSGPA(rows)
     setsgpa(score)
-    setnote(scoremsg(score))
     setpop(true)
 
     const hasFailed = rows.some(r => {
@@ -192,19 +188,16 @@ const ResultPage = () => {
 
   const addrow = () => {
     setrows(prev => [...prev, { id: Date.now(), subject: '', credits: '', grade: '', isManual: true }])
-    seterr('')
     seterrors({ credits: [], grades: [] })
   }
 
   const delrow = (idx) => {
     setrows(prev => prev.filter((_, i) => i !== idx))
-    seterr('')
     seterrors({ credits: [], grades: [] })
   }
 
   const setrow = (idx, key, val) => {
     setrows(prev => prev.map((r, i) => (i === idx ? { ...r, [key]: val } : r)))
-    seterr('')
     seterrors(prev => {
       const next = { ...prev }
       if (key === 'credits') next.credits = next.credits.filter(i => i !== idx)
@@ -212,118 +205,6 @@ const ResultPage = () => {
       return next
     })
   }
-
-  const loadimg = (src) => new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-
-  const buildshot = async (who) => {
-    const score = sgpa !== null ? sgpa : calcSGPA(rows);
-    const list = rows.length ? rows : [{ subject: '', credits: '', grade: '' }];
-    const width = 1200;
-    const rowh = 44;
-    const headh = 46;
-    const top = 130;
-    const bottom = 80;
-    const height = top + headh + (rowh * list.length) + bottom;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#0c0c0f';
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = '#2a2a38';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(24, 24, width - 48, height - 48);
-
-    let logo = null;
-    try {
-      logo = await loadimg('/calci.svg');
-    } catch (e) {
-      logo = null;
-    }
-
-    if (logo) {
-      ctx.drawImage(logo, 54, 48, 38, 38);
-    }
-    ctx.fillStyle = '#60a5fa';
-    ctx.font = '700 22px "JetBrains Mono", monospace';
-    ctx.fillText('CALCI', 100, 76);
-
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '600 18px "Inter", sans-serif';
-    ctx.fillText(who, 54, 108);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 13px "Inter", sans-serif';
-    ctx.fillText('Report Card', 54, 128);
-
-    ctx.fillStyle = '#60a5fa';
-    ctx.font = '700 26px "Inter", sans-serif';
-    ctx.fillText(String(score.toFixed(2)), width - 140, 84);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '600 12px "JetBrains Mono", monospace';
-    ctx.fillText('SGPA', width - 140, 104);
-
-    const x = 54;
-    const w = width - 108;
-    const cols = [x, x + 60, x + 620, x + 780];
-
-    ctx.fillStyle = '#13131a';
-    ctx.fillRect(x, top, w, headh);
-    ctx.strokeStyle = '#2a2a38';
-    ctx.strokeRect(x, top, w, headh);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '600 12px "JetBrains Mono", monospace';
-    ctx.fillText('#', cols[0], top + 28);
-    ctx.fillText('SUBJECT', cols[1], top + 28);
-    ctx.fillText('CREDITS', cols[2], top + 28);
-    ctx.fillText('GRADE', cols[3], top + 28);
-
-    ctx.font = '500 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#e2e8f0';
-
-    const trim = (s, n) => {
-      const t = String(s || '');
-      if (t.length <= n) return t;
-      return t.slice(0, Math.max(0, n - 3)) + '...';
-    };
-
-    list.forEach((r, i) => {
-      const y = top + headh + (rowh * i);
-      const g = String(r.grade || '').toUpperCase().trim();
-      const isFail = GRADE_POINTS[g] === 0;
-
-      if (isFail) {
-        ctx.fillStyle = '#2b1416';
-        ctx.fillRect(x, y, w, rowh);
-        ctx.strokeStyle = '#ef4444';
-      } else {
-        ctx.strokeStyle = '#2a2a38';
-      }
-      ctx.strokeRect(x, y, w, rowh);
-
-      if (isFail) {
-        ctx.fillStyle = '#f87171';
-      } else {
-        ctx.fillStyle = '#e2e8f0';
-      }
-      ctx.fillText(String(i + 1), cols[0], y + 28);
-      ctx.fillText(trim(r.subject, 36), cols[1], y + 28);
-      ctx.fillText(String(r.credits || ''), cols[2], y + 28);
-      ctx.fillText(String(r.grade || '').toUpperCase(), cols[3], y + 28);
-    });
-
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.92);
-    });
-  };
 
   const ondownload = async () => {
     if (!name.trim()) {
@@ -333,7 +214,8 @@ const ResultPage = () => {
     }
     setbusy(true);
     const who = name.trim();
-    const blob = await buildshot(who);
+    const score = sgpa !== null ? sgpa : calcSGPA(rows);
+    const blob = await generateResultCard(who, rows, score);
     if (!blob) {
       setbusy(false);
       return;
@@ -341,7 +223,8 @@ const ResultPage = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'calci-result.jpg';
+    const filename = `calci-result-${who.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     setbusy(false);
@@ -355,12 +238,14 @@ const ResultPage = () => {
     }
     setbusy(true);
     const who = name.trim();
-    const blob = await buildshot(who);
+    const score = sgpa !== null ? sgpa : calcSGPA(rows);
+    const blob = await generateResultCard(who, rows, score);
     if (!blob) {
       setbusy(false);
       return;
     }
-    const file = new File([blob], 'calci-result.jpg', { type: 'image/jpeg' });
+    const filename = `calci-result-${who.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+    const file = new File([blob], filename, { type: 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: 'CALCI Result' });
@@ -370,7 +255,7 @@ const ResultPage = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'calci-result.jpg';
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
     }
