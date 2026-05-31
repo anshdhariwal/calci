@@ -309,6 +309,14 @@ const UploadPage = () => {
                   <span>Drag image to reposition</span>
                 </div>
               </div>
+
+              <div className="crop-tips">
+                <ul className="crop-tips-list">
+                  <li>Focus on subject, credits, grade</li>
+                  <li>Crop out extra columns</li>
+                  <li>Avoid shadows and glare</li>
+                </ul>
+              </div>
             </div>
 
             <button
