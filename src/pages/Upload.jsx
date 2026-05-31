@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, Image, ShieldCheck, Sparkles, Upload, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
 import { Cropper } from 'react-advanced-cropper';
 import { useNavigate } from 'react-router-dom';
-import { run } from '../engine/pipeline.js';
+import { performOCR } from '../engine/ocrService.js';
 import 'react-advanced-cropper/dist/style.css';
 import './Upload.css';
 
@@ -190,10 +190,11 @@ const UploadPage = () => {
     if (!cropref.current) return;
     const canvas = cropref.current.getCanvas();
     if (!canvas) return;
+    const shot = canvas.toDataURL('image/jpeg', 0.9);
     setcropmode(false);
     setbusy(true);
-    setlogs([]);
     setprogress({ pct: 0, label: 'Initializing...' });
+    
     canvas.toBlob(async (blob) => {
       if (!blob) {
         setbusy(false);
@@ -202,39 +203,21 @@ const UploadPage = () => {
       }
       const cropped = new File([blob], file.name, { type: 'image/jpeg' });
       setfile(cropped);
-      const url = URL.createObjectURL(cropped);
+      
       try {
-        const img = await new Promise((resolve, reject) => {
-          const i = new window.Image();
-          i.src = url;
-          i.onload = () => resolve(i);
-          i.onerror = (e) => reject(e);
-        });
-        const logCallback = (msg, type = '') => {
-          const ts = new Date().toTimeString().slice(0, 8);
-          setlogs((prev) => [...prev, { time: ts, msg, type }]);
-        };
-        const progCallback = (pct, label) => {
-          setprogress({ pct, label });
-        };
-        const res = await run(img, {
-          log: logCallback,
-          prog: progCallback,
-          previewCanvas: document.createElement('canvas'),
-          workCanvas: document.createElement('canvas'),
-        });
-        if (!res.rows || res.rows.length === 0) {
-          logCallback('No table found. Try a clearer image.', 'warn');
+        setprogress({ pct: 50, label: 'Running OCR...' });
+        const subjects = await performOCR(cropped);
+        
+        if (!subjects || subjects.length === 0) {
           seterr('No table detected. Please retry with a clearer image.');
         } else {
-          logCallback(`Done, ${res.rows.length} rows extracted`, 'ok');
-          navigate('/results', { state: { rows: res.rows } });
+          setprogress({ pct: 100, label: 'Done!' });
+          navigate('/result', { state: { rows: subjects, image: shot } });
         }
       } catch (e) {
         seterr('OCR Error: ' + e.message);
       } finally {
         setbusy(false);
-        URL.revokeObjectURL(url);
       }
     }, 'image/jpeg', 0.95);
   }, [file, navigate]);
@@ -498,7 +481,7 @@ const UploadPage = () => {
           ) : (
             <p className="upload-panel-tip">
               <span className="tip-dot" />
-              Use screenshots for best OCR accuracy
+              Note: Works best with uploaded screenshots
             </p>
           )}
           <div

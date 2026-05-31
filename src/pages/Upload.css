@@ -179,13 +179,12 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: rgba(96, 165, 250, 0.75);
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f87171;
   margin: 0 0 0.9rem;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .tip-dot {
@@ -193,14 +192,19 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3b82f6;
-  box-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+  background: #f87171;
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.8);
   flex-shrink: 0;
   animation: tipPulse 2.4s ease-in-out infinite;
 }
 
 [data-theme="light"] .upload-panel-tip {
-  color: rgba(37, 99, 235, 0.8);
+  color: #ef4444;
+}
+
+[data-theme="light"] .tip-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
 }
 
 @keyframes tipPulse {
