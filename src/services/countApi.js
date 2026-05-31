@@ -1,25 +1,33 @@
-const NAMESPACE = 'calci-app';
+import { Counter } from 'counterapi';
+
+const WORKSPACE = import.meta.env.VITE_COUNTERAPI_WORKSPACE || 'calci-app';
+const TOKEN = import.meta.env.VITE_COUNTERAPI_TOKEN;
 const KEY = 'page-likes';
-const STORAGE_KEY = `liked_${NAMESPACE}_${KEY}`;
+const STORAGE_KEY = `liked_${WORKSPACE}_${KEY}`;
+
+const counter = new Counter({
+  workspace: WORKSPACE,
+  accessToken: TOKEN,
+  timeout: 5000,
+  debug: false
+});
 
 export const getCurrentCount = async () => {
   try {
-    const response = await fetch(`https://api.countapi.xyz/get/${NAMESPACE}/${KEY}`);
-    const data = await response.json();
-    return data.value || 0;
+    const result = await counter.get(KEY);
+    return result.value || 0;
   } catch (error) {
-    console.error('Error fetching like count:', error);
+    console.error('error fetching like count:', error);
     return 0;
   }
 };
 
 export const incrementCount = async () => {
   try {
-    const response = await fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/${KEY}`);
-    const data = await response.json();
-    return data.value;
+    const result = await counter.up(KEY);
+    return result.value;
   } catch (error) {
-    console.error('Error incrementing like count:', error);
+    console.error('error incrementing like count:', error);
     throw error;
   }
 };
