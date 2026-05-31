@@ -5,6 +5,7 @@ import { FaSnowflake } from 'react-icons/fa';
 import { Info, X } from 'lucide-react';
 import useSnowEffect from '../hooks/useSnowEffect.js';
 import { GRADES } from '../engine/gradeUtils.js';
+import LikeButton from './LikeButton.jsx';
 import './Navbar.css';
 
 const SPRING = {
@@ -242,7 +243,11 @@ const Navbar = () => {
           </div>
 
           <div className="nav-actions">
-            <motion.div custom={0} variants={actionVariants} className="nav-snow-toggle-wrapper">
+            <motion.div custom={0} variants={actionVariants}>
+              <LikeButton />
+            </motion.div>
+
+            <motion.div custom={1} variants={actionVariants} className="nav-snow-toggle-wrapper">
               <AnimatedToggle
                 checked={isSnowing}
                 onChange={toggleSnow}
@@ -257,7 +262,7 @@ const Navbar = () => {
               />
             </motion.div>
 
-            <motion.div custom={1} variants={actionVariants}>
+            <motion.div custom={2} variants={actionVariants}>
               <Link to="/upload" className="nav-btn-primary">
                 Start Scanning
               </Link>
