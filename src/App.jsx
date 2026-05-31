@@ -8,7 +8,7 @@ import Watermark from './components/Watermark.jsx';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/calci">
       <Navbar />
       <main style={{ minHeight: '80vh' }}>
         <Routes>
