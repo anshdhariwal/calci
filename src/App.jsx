@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import UploadPage from './pages/Upload.jsx';
-import Navbar from './components/common/Navbar.jsx';
-import Watermark from './components/common/Watermark.jsx';
+import ResultPage from './pages/Result.jsx';
+import ManualPage from './pages/Manual.jsx';
+import Navbar from './components/Navbar.jsx';
+import Watermark from './components/Watermark.jsx';
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/upload" element={<UploadPage />} />
+          <Route path="/manual" element={<ManualPage />} />
+          <Route path="/result" element={<ResultPage />} />
         </Routes>
       </main>
       <Watermark />
