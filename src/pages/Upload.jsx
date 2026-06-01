@@ -136,14 +136,6 @@ const UploadPage = () => {
   }, []);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev || '';
-    };
-  }, []);
-
-  useEffect(() => {
     if (!file) {
       setprev('');
       return undefined;

@@ -986,13 +986,14 @@
 
 
 @media (max-width: 768px) {
-  .manual-container {
-    padding: 4.5rem 1rem 2rem;
+  .manual-page {
+    padding-top: 5rem;
+    padding-bottom: 1rem;
   }
 
-  .manual-hero {
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+  .manual-wrap {
+    gap: 1rem;
+    min-height: auto;
   }
 
   .manual-badge {
@@ -1001,31 +1002,24 @@
 
   .manual-title {
     font-size: 1.75rem;
+    margin-bottom: 0.5rem;
   }
 
-  .manual-subtitle {
-    font-size: 0.95rem;
+  .manual-sub {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
   }
 
   .manual-point {
     display: none;
   }
 
-  .manual-panel {
-    padding: 1rem;
+  .manual-table-card {
+    padding: 0.85rem;
   }
 
-  .manual-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .manual-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .manual-btn {
-    width: 100%;
-    justify-content: center;
+  .manual-card-head {
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.7rem;
   }
 }

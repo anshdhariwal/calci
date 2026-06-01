@@ -1,7 +1,8 @@
 .upload-page {
   position: relative;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-top: 6rem;
   padding-bottom: 2rem;
   display: flex;
@@ -1311,13 +1312,16 @@
 
 
 @media (max-width: 768px) {
-  .upload-container {
-    padding: 5rem 1rem 2rem;
+  .upload-page {
+    padding-top: 5rem;
+    padding-bottom: 1rem;
+    min-height: 100vh;
+    height: auto;
   }
 
-  .upload-hero {
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+  .upload-wrap {
+    gap: 1rem;
+    min-height: auto;
   }
 
   .upload-badge {
@@ -1328,8 +1332,9 @@
     font-size: 1.75rem;
   }
 
-  .upload-subtitle {
-    font-size: 0.95rem;
+  .upload-sub {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
   }
 
   .upload-point {
