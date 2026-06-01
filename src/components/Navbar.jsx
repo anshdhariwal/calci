@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useCallback, useState } from 'react';
 import { FaSnowflake } from 'react-icons/fa';
-import { Info, X } from 'lucide-react';
+import { Info, X, Menu } from 'lucide-react';
 import useSnowEffect from '../hooks/useSnowEffect.js';
 import { GRADES } from '../engine/gradeUtils.js';
 import LikeButton from './LikeButton.jsx';
@@ -162,6 +162,7 @@ const Navbar = () => {
   const { isSnowing, toggleSnow } = useSnowEffect();
   const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [showScheme, setShowScheme] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navVariants = {
     hidden: { opacity: 0, y: isReducedMotion ? 0 : -22, x: '-50%' },
@@ -218,6 +219,19 @@ const Navbar = () => {
             </Link>
           </motion.div>
 
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <motion.div
+              animate={{ rotate: mobileMenuOpen ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.div>
+          </button>
+
           <div className="nav-center-links">
             {['Home', 'Smart Upload', 'Manual Entry', 'Repository'].map((text, idx) => {
               const path = text === 'Home' ? '/' : text === 'Smart Upload' ? '/upload' : text === 'Manual Entry' ? '/manual' : 'https://github.com/anshdhariwal/calci';
@@ -226,11 +240,11 @@ const Navbar = () => {
               return (
                 <motion.div key={text} custom={idx} variants={centerLinksVariants}>
                   {isExternal ? (
-                    <a href={path} target="_blank" rel="noopener noreferrer" className="nav-link">
+                    <a href={path} target="_blank" rel="noopener noreferrer" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
                       {text}
                     </a>
                   ) : (
-                    <Link to={path} className={`nav-link ${isActive ? 'nav-link-active' : ''}`}>
+                    <Link to={path} className={`nav-link ${isActive ? 'nav-link-active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
                       {text}
                       {isActive && (
                         <motion.span layoutId="nav-dot" className="nav-active-dot" />
@@ -270,6 +284,59 @@ const Navbar = () => {
           </div>
         </div>
       </motion.nav>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="mobile-menu-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <motion.div
+              className="mobile-menu-content"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {['Home', 'Smart Upload', 'Manual Entry', 'Repository'].map((text) => {
+                const path = text === 'Home' ? '/' : text === 'Smart Upload' ? '/upload' : text === 'Manual Entry' ? '/manual' : 'https://github.com/anshdhariwal/calci';
+                const isExternal = path.startsWith('http');
+                const isActive = !isExternal && (path === '/' ? loc.pathname === '/' : loc.pathname.startsWith(path));
+                return (
+                  <div key={text}>
+                    {isExternal ? (
+                      <a href={path} target="_blank" rel="noopener noreferrer" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        {text}
+                      </a>
+                    ) : (
+                      <Link to={path} className={`mobile-menu-link ${isActive ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+                        {text}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="mobile-menu-footer">
+                <LikeButton />
+                <AnimatedToggle
+                  checked={isSnowing}
+                  onChange={toggleSnow}
+                  variant="icon"
+                  icons={{
+                    on: <FaSnowflake style={{ color: '#3b82f6' }} />,
+                    off: <FaSnowflake style={{ color: '#94a3b8' }} />
+                  }}
+                  size="md"
+                  label="Toggle snow effect"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <button
         type="button"

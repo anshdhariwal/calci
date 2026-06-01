@@ -983,3 +983,49 @@
     gap: 0.25rem;
   }
 }
+
+
+@media (max-width: 768px) {
+  .manual-container {
+    padding: 5rem 1rem 2rem;
+  }
+
+  .manual-hero {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .manual-badge {
+    display: none;
+  }
+
+  .manual-title {
+    font-size: 1.75rem;
+  }
+
+  .manual-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .manual-point {
+    display: none;
+  }
+
+  .manual-panel {
+    padding: 1rem;
+  }
+
+  .manual-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .manual-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .manual-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

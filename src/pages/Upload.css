@@ -867,6 +867,31 @@
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.18);
 }
 
+.crop-hint-capsule {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+[data-theme="light"] .crop-hint-capsule {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(15, 23, 42, 0.8);
+}
 
 .crop-canvas-wrap {
   width: 100%;
@@ -1243,4 +1268,55 @@
 @keyframes textPulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 0.95; }
+}
+
+
+@media (max-width: 768px) {
+  .upload-container {
+    padding: 5rem 1rem 2rem;
+  }
+
+  .upload-hero {
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .upload-badge {
+    display: none;
+  }
+
+  .upload-title {
+    font-size: 1.75rem;
+  }
+
+  .upload-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .upload-point {
+    display: none;
+  }
+
+  .upload-panel {
+    padding: 1rem;
+  }
+
+  .upload-drop {
+    height: clamp(200px, 35vh, 280px);
+  }
+
+  .upload-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .upload-btn-primary,
+  .upload-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .upload-cta {
+    width: 100%;
+  }
 }

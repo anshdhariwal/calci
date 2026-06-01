@@ -328,6 +328,7 @@ const UploadPage = () => {
           </div>
 
           <div className="crop-main">
+            <div className="crop-hint-capsule">Crop Image</div>
             <div className="crop-canvas-wrap">
               <Cropper
                 ref={cropref}
