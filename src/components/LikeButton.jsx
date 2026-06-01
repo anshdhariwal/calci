@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCurrentCount, incrementCount, hasUserLiked, markAsLiked } from '../services/countApi.js';
+import { getlikes, uplike, hasliked, setliked } from '../services/countApi.js';
 import './LikeButton.css';
 
 const LikeButton = () => {
@@ -10,10 +10,10 @@ const LikeButton = () => {
 
   useEffect(() => {
     const initializeLikes = async () => {
-      const userLiked = hasUserLiked();
+      const userLiked = hasliked();
       setLiked(userLiked);
       
-      const currentCount = await getCurrentCount();
+      const currentCount = await getlikes();
       setCount(currentCount);
       setLoading(false);
     };
@@ -28,10 +28,10 @@ const LikeButton = () => {
     setTimeout(() => setAnimating(false), 200);
 
     try {
-      const newCount = await incrementCount();
+      const newCount = await uplike();
       setCount(newCount);
       setLiked(true);
-      markAsLiked();
+      setliked();
     } catch (error) {
       console.error('Failed to like:', error);
     }
