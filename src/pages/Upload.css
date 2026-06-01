@@ -337,13 +337,14 @@
 
   opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
 
-  mask:
-    linear-gradient(#fff 0 0) padding-box exclude,
-    linear-gradient(#fff 0 0) border-box;
   -webkit-mask:
     linear-gradient(#fff 0 0) padding-box,
     linear-gradient(#fff 0 0) border-box;
   -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0) border-box;
+  mask-composite: exclude;
 }
 
 .upload-panel > .edge-light {

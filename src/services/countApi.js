@@ -1,40 +1,27 @@
-import { Counter } from 'counterapi';
-
-const WORKSPACE = import.meta.env.VITE_COUNTERAPI_WORKSPACE || 'calci-app';
-const TOKEN = import.meta.env.VITE_COUNTERAPI_TOKEN;
+const WORKSPACE = 'calci-app';
 const KEY = 'page-likes';
+const BASE = `https://api.counterapi.dev/v2/${WORKSPACE}/${KEY}`;
 const STORAGE_KEY = `liked_${WORKSPACE}_${KEY}`;
-
-const counter = new Counter({
-  workspace: WORKSPACE,
-  accessToken: TOKEN,
-  timeout: 5000,
-  debug: false
-});
 
 export const getCurrentCount = async () => {
   try {
-    const result = await counter.get(KEY);
-    return result.value || 0;
-  } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.message?.includes('blocked')) {
-      return 0;
-    }
-    console.error('error fetching like count:', error);
+    const res = await fetch(BASE);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data.value || 0;
+  } catch {
     return 0;
   }
 };
 
 export const incrementCount = async () => {
   try {
-    const result = await counter.up(KEY);
-    return result.value;
-  } catch (error) {
-    if (error.code === 'ERR_NETWORK' || error.message?.includes('blocked')) {
-      return 0;
-    }
-    console.error('error incrementing like count:', error);
-    throw error;
+    const res = await fetch(`${BASE}/up`, { method: 'PUT' });
+    if (!res.ok) throw new Error('failed');
+    const data = await res.json();
+    return data.value;
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -45,3 +32,4 @@ export const hasUserLiked = () => {
 export const markAsLiked = () => {
   localStorage.setItem(STORAGE_KEY, 'true');
 };
+
