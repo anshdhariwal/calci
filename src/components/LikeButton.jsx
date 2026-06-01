@@ -13,7 +13,17 @@ const LikeButton = () => {
       const userLiked = hasliked();
       setLiked(userLiked);
       
-      const currentCount = await getlikes();
+      let attempts = 0;
+      let currentCount = 0;
+      
+      while (attempts < 3 && currentCount === 0) {
+        currentCount = await getlikes();
+        if (currentCount === 0 && attempts < 2) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        attempts++;
+      }
+      
       setCount(currentCount);
       setLoading(false);
     };
