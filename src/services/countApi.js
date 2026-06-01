@@ -17,6 +17,9 @@ export const getCurrentCount = async () => {
     const result = await counter.get(KEY);
     return result.value || 0;
   } catch (error) {
+    if (error.code === 'ERR_NETWORK' || error.message?.includes('blocked')) {
+      return 0;
+    }
     console.error('error fetching like count:', error);
     return 0;
   }
@@ -27,6 +30,9 @@ export const incrementCount = async () => {
     const result = await counter.up(KEY);
     return result.value;
   } catch (error) {
+    if (error.code === 'ERR_NETWORK' || error.message?.includes('blocked')) {
+      return 0;
+    }
     console.error('error incrementing like count:', error);
     throw error;
   }

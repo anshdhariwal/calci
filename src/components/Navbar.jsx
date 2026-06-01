@@ -205,7 +205,7 @@ const Navbar = () => {
 
           <motion.div variants={brandVariants}>
             <Link to="/" className="nav-brand">
-              <img src="/calci.svg" alt="Calci Logo" className="nav-logo-icon" />
+              <img src={`${import.meta.env.BASE_URL}calci.svg`} alt="Calci Logo" className="nav-logo-icon" />
 
               <div className="nav-brand-text">
                 <span className="nav-brand-title logo-text" data-text="CALCI">
