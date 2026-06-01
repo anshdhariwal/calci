@@ -1005,14 +1005,41 @@
 
 /* Cropper library overrides for dark theme */
 .crop-cropper .advanced-cropper-simple-handler {
-  background: #ffffff;
-  border: none;
-  width: 12px;
-  height: 12px;
+  background: #60a5fa;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(96, 165, 250, 0.6);
 }
 
 .crop-cropper .advanced-cropper-simple-line {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(96, 165, 250, 0.8);
+  position: relative;
+}
+
+.crop-cropper .advanced-cropper-simple-line::after {
+  content: '';
+  position: absolute;
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.crop-cropper .advanced-cropper-simple-line--horizontal::after {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 6px;
+}
+
+.crop-cropper .advanced-cropper-simple-line--vertical::after {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 50px;
 }
 
 .crop-cropper .advanced-cropper-stencil-grid__cell {
@@ -1027,6 +1054,18 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
+[data-theme="light"] .crop-cropper .advanced-cropper-simple-handler {
+  background: #60a5fa;
+  border-color: #1e293b;
+}
+
+[data-theme="light"] .crop-cropper .advanced-cropper-simple-line {
+  background: rgba(96, 165, 250, 0.6);
+}
+
+[data-theme="light"] .crop-cropper .advanced-cropper-simple-line::after {
+  background: #1e293b;
+}
 
 /* ============================================
    RESPONSIVE

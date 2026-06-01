@@ -1,5 +1,4 @@
 export const GRADE_POINTS = {
-  'O': 10.0,  // Some universities use O for Outstanding
   'A+': 10.0,
   'A': 9.0,
   'B+': 8.0,
@@ -14,7 +13,6 @@ export const GRADE_POINTS = {
 };
 
 export const GRADES = [
-  { grade: 'O',  label: 'Outstanding', points: 10.00 },
   { grade: 'A+', label: 'Outstanding', points: 10.00 },
   { grade: 'A',  label: 'Excellent',   points: 9.00 },
   { grade: 'B+', label: 'Very Good',   points: 8.00 },

@@ -619,6 +619,8 @@
   .nav-inner {
     height: 3.5rem;
     padding: 0 0.75rem;
+    backdrop-filter: blur(60px);
+    -webkit-backdrop-filter: blur(60px);
   }
 
   .mobile-menu-toggle {
