@@ -30,11 +30,17 @@ jobs:
       - name: install dependencies
         run: npm ci
 
+      - name: clean dist folder
+        run: rm -rf dist
+
       - name: build
         env:
           VITE_COUNTERAPI_TOKEN: ${{ secrets.VITE_COUNTERAPI_TOKEN }}
           VITE_COUNTERAPI_WORKSPACE: calci-app
         run: npm run build
+
+      - name: add nojekyll file
+        run: touch dist/.nojekyll
 
       - name: setup pages
         uses: actions/configure-pages@v4
