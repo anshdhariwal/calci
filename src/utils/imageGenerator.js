@@ -79,7 +79,7 @@ export const generateResultCard = async (studentName, rows, sgpa) => {
 
   let logo = null;
   try {
-    logo = await loadimg('/calci.svg');
+    logo = await loadimg(`${import.meta.env.BASE_URL}calci.svg`);
   } catch {
     logo = null;
   }

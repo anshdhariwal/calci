@@ -126,7 +126,7 @@ const ManualPage = () => {
 
     let logo = null;
     try {
-      logo = await loadimg('/calci.svg');
+      logo = await loadimg(`${import.meta.env.BASE_URL}calci.svg`);
     } catch (e) {
       logo = null;
     }
