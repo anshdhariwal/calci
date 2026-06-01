@@ -185,6 +185,8 @@
   color: #f87171;
   margin: 0 0 0.9rem;
   text-transform: none;
+  position: relative;
+  z-index: 1;
 }
 
 .tip-dot {
@@ -347,7 +349,7 @@
 .upload-panel > .edge-light {
   inset: calc(var(--glow-padding) * -1);
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 
   mask-image:
     conic-gradient(
@@ -388,6 +390,7 @@
   text-align: center;
   cursor: pointer;
   position: relative;
+  z-index: 1;
   overflow: hidden;
   background: rgba(15, 23, 42, 0.45);
   transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
