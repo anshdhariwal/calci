@@ -34,9 +34,6 @@ jobs:
         run: rm -rf dist
 
       - name: build
-        env:
-          VITE_COUNTERAPI_TOKEN: ${{ secrets.VITE_COUNTERAPI_TOKEN }}
-          VITE_COUNTERAPI_WORKSPACE: calci-app
         run: npm run build
 
       - name: add nojekyll file
