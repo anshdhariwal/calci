@@ -256,7 +256,6 @@ const UploadPage = () => {
 
         <div className="loading-screen container">
           <div className="upload-panel scan-loading-panel">
-            <span className="edge-light" />
             <div className="aesthetic-loader-container">
               <div className="loader"></div>
               <footer className="scan-loading-footer">
@@ -480,7 +479,6 @@ const UploadPage = () => {
         </div>
 
         <div className="upload-panel" ref={pref} onPointerMove={onmove}>
-          <span className="edge-light" />
           {err ? (
             <div className="upload-error-banner">
               <span className="error-dot" />
