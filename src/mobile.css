@@ -1,0 +1,117 @@
+@media (max-width: 768px) {
+  .nav-brand-subtitle {
+    display: none;
+  }
+
+  .nav-center-links {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .nav-btn-primary {
+    display: none;
+  }
+
+  .like-button {
+    height: 36px;
+    width: 100px;
+  }
+
+  .like-text {
+    font-size: 12px;
+  }
+
+  .like-count {
+    font-size: 12px;
+  }
+
+  .hero-section {
+    padding: 2rem 1rem !important;
+  }
+
+  .hero-content-new {
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .hero-badge {
+    justify-content: center;
+  }
+
+  .hero-title-new {
+    font-size: 2.5rem !important;
+    text-align: center;
+  }
+
+  .hero-subtitle-new {
+    font-size: 1rem !important;
+    text-align: center;
+  }
+
+  .hero-buttons-new {
+    flex-direction: column !important;
+    width: 100%;
+    gap: 0.75rem !important;
+  }
+
+  .hero-btn-primary,
+  .hero-btn-secondary {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .upload-header-badge {
+    display: none !important;
+  }
+
+  .upload-header-title {
+    font-size: 1.75rem !important;
+  }
+
+  .upload-header-subtitle {
+    font-size: 0.9rem !important;
+  }
+
+  .upload-features {
+    display: none !important;
+  }
+
+  .upload-panel {
+    padding: 1rem !important;
+  }
+
+  .upload-drop {
+    height: 280px !important;
+  }
+
+  .manual-header-badge {
+    display: none !important;
+  }
+
+  .manual-header-title {
+    font-size: 1.75rem !important;
+  }
+
+  .manual-header-subtitle {
+    font-size: 0.9rem !important;
+  }
+
+  .manual-features {
+    display: none !important;
+  }
+
+  .manual-content {
+    gap: 1.5rem !important;
+  }
+
+  .manual-left {
+    display: none !important;
+  }
+
+  .manual-right {
+    width: 100% !important;
+  }
+}
