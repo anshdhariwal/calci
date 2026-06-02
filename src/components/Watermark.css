@@ -60,3 +60,17 @@
   color: var(--primary);
   text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+  .watermark-badge {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+    gap: 0.35rem;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .watermark-icon {
+    font-size: 0.72rem;
+  }
+}

@@ -610,7 +610,7 @@
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1240px) {
   .nav-container {
     width: calc(100% - 16px);
     top: 0.75rem;

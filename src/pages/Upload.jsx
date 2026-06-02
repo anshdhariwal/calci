@@ -269,19 +269,21 @@ const UploadPage = () => {
           <div className="upload-blob upload-blob-b"></div>
         </div>
 
+        <div className="crop-fixed-header">
+          <button
+            type="button"
+            className="crop-back"
+            onClick={() => setcropmode(false)}
+            title="Back to upload"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <h2 className="crop-fixed-title">Crop the image</h2>
+        </div>
+
         <div className="crop-screen container">
           <div className="crop-sidebar">
-            <button
-              type="button"
-              className="crop-back"
-              onClick={() => setcropmode(false)}
-              title="Back to upload"
-            >
-              <ArrowLeft size={18} />
-            </button>
-
             <div className="crop-info">
-              <h2 className="crop-title">Crop the image</h2>
               <p className="crop-desc">
                 Select only the table area from your image. Use scroll to zoom and drag to pan.
               </p>
@@ -347,6 +349,8 @@ const UploadPage = () => {
                 }}
                 imageRestriction="stencil"
                 transitions={true}
+                minWidth={100}
+                minHeight={100}
                 defaultSize={(state) => ({
                   width: state.imageSize.width,
                   height: state.imageSize.height
@@ -355,6 +359,25 @@ const UploadPage = () => {
                   left: 0,
                   top: 0
                 })}
+                stencilSize={{
+                  minimum: {
+                    width: 100,
+                    height: 100
+                  }
+                }}
+                imageProps={{
+                  crossOrigin: 'anonymous'
+                }}
+                backgroundProps={{
+                  scaleImage: true,
+                  moveImage: true
+                }}
+                resizeImage={{
+                  adjustStencil: false
+                }}
+                moveImage={{
+                  adjustStencil: false
+                }}
               />
             </div>
 
