@@ -3,23 +3,7 @@ import confetti from 'canvas-confetti';
 
 const useSnowEffect = () => {
   const [isSnowing, setIsSnowing] = useState(false);
-  const [theme, setTheme] = useState('dark');
   const frameRef = useRef(null);
-
-  useEffect(() => {
-    const themeChange = () => {
-      const curr = document.documentElement.getAttribute('data-theme') || 'dark';
-      setTheme(curr);
-      if (curr === 'light' && isSnowing) {
-        setIsSnowing(false);
-      }
-    };
-
-    const obs = new MutationObserver(themeChange);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-    return () => obs.disconnect();
-  }, [isSnowing]);
 
   useEffect(() => {
     if (isSnowing) {
@@ -77,7 +61,6 @@ const useSnowEffect = () => {
   }, [isSnowing]);
 
   const toggleSnow = () => {
-    if (theme === 'light') return;
     setIsSnowing(prev => !prev);
   };
 

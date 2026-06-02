@@ -123,33 +123,3 @@
     transform: scale(1);
   }
 }
-
-[data-theme="light"] .like-button {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .like-button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .like-icon {
-  fill: #64748b;
-}
-
-[data-theme="light"] .like-text {
-  color: #1e293b;
-}
-
-[data-theme="light"] .like-count {
-  color: #64748b;
-}
-
-[data-theme="light"] .like-count.two.visible {
-  color: #1e293b;
-}
-
-[data-theme="light"] .like-count-wrapper {
-  border-left-color: rgba(0, 0, 0, 0.08);
-}
