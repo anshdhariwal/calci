@@ -11,9 +11,142 @@
     <title>CALCI | SGPA Calculator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@800&family=Lexend+Deca:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      .splash-container {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        background: #070a10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .splash-glow {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.45) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .splash-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.2rem;
+      }
+      .splash-logo {
+        width: 80px;
+        height: 80px;
+        filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.45));
+        animation: logoPulse 2s infinite ease-in-out;
+      }
+      .splash-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #f1f5f9;
+        letter-spacing: 0.12em;
+        margin: 0;
+        text-shadow: 0 0 24px rgba(96, 165, 250, 0.35);
+      }
+      .splash-loader {
+        width: 120px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        position: relative;
+        overflow: hidden;
+      }
+      .splash-loader::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 40%;
+        background: #60a5fa;
+        border-radius: 3px;
+        animation: loaderSwipe 1.5s infinite ease-in-out;
+      }
+      @keyframes logoPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+      }
+      @keyframes loaderSwipe {
+        0% { left: -40%; }
+        100% { left: 100%; }
+      }
+      .splash-container.burn-out {
+        animation: burnOut 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        pointer-events: none;
+      }
+      .splash-container.burn-out .splash-logo {
+        animation: logoBurn 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+      .splash-container.burn-out .splash-glow {
+        animation: glowExpand 0.75s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+      }
+      @keyframes burnOut {
+        0% {
+          opacity: 1;
+        }
+        40% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+      @keyframes logoBurn {
+        0% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+        30% {
+          transform: scale(0.96) translateY(2px);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.78) translateY(-28px);
+          opacity: 0;
+        }
+      }
+      @keyframes glowExpand {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        35% {
+          opacity: 1;
+        }
+        100% {
+          transform: scale(9);
+          opacity: 0;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash-screen" class="splash-container">
+      <div class="splash-glow"></div>
+      <div class="splash-content">
+        <svg class="splash-logo" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 48 48">
+          <g fill="none" stroke-linejoin="round" stroke-width="4">
+            <path fill="#2F88FF" stroke="#000" d="M41 13.9997L24 4L7 13.9997V33.9998L24 44L41 33.9998V13.9997Z" />
+            <path stroke="#fff" stroke-linecap="round" d="M16 18.9976L23.9932 24.0002L31.9951 18.9976" />
+            <path stroke="#fff" stroke-linecap="round" d="M24 24V32" />
+          </g>
+        </svg>
+        <h1 class="splash-title">CALCI</h1>
+        <div class="splash-loader"></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script>
       (function () {
