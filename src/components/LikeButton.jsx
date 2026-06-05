@@ -1,50 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getlikes, uplike, hasliked, setliked } from '../services/countApi.js';
+import { useState, useId } from 'react';
 import './LikeButton.css';
 
-const LikeButton = () => {
-  const [liked, setLiked] = useState(false);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+const LikeButton = ({ liked, count, loading, onLike }) => {
   const [animating, setAnimating] = useState(false);
+  const heartId = useId();
 
-  useEffect(() => {
-    const initializeLikes = async () => {
-      const userLiked = hasliked();
-      setLiked(userLiked);
-      
-      let attempts = 0;
-      let currentCount = 0;
-      
-      while (attempts < 3 && currentCount === 0) {
-        currentCount = await getlikes();
-        if (currentCount === 0 && attempts < 2) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        attempts++;
-      }
-      
-      setCount(currentCount);
-      setLoading(false);
-    };
-
-    initializeLikes();
-  }, []);
-
-  const handleLike = async () => {
+  const handleCheckboxChange = () => {
     if (liked || loading) return;
-
     setAnimating(true);
     setTimeout(() => setAnimating(false), 200);
-
-    try {
-      const newCount = await uplike();
-      setCount(newCount);
-      setLiked(true);
-      setliked();
-    } catch (error) {
-      console.error('Failed to like:', error);
-    }
+    onLike?.();
   };
 
   const displayCount = loading ? '--' : count;
@@ -55,13 +20,13 @@ const LikeButton = () => {
       <div className="like-button">
         <input
           className="like-checkbox"
-          id="heart"
+          id={heartId}
           type="checkbox"
           checked={liked}
-          onChange={handleLike}
+          onChange={handleCheckboxChange}
           disabled={liked || loading}
         />
-        <label className="like-label" htmlFor="heart">
+        <label className="like-label" htmlFor={heartId}>
           <svg
             className={`like-icon ${animating ? 'animating' : ''}`}
             fillRule="nonzero"
