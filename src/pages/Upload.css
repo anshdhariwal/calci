@@ -594,11 +594,17 @@
 .crop-fixed-header {
   position: fixed;
   top: 6.5rem;
-  left: 1.75rem;
+  left: calc((100vw - 1040px) / 2 + 1.75rem);
   z-index: 100;
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+@media (max-width: 1120px) {
+  .crop-fixed-header {
+    left: 1.75rem;
+  }
 }
 
 .crop-sidebar {
@@ -765,12 +771,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
 }
 
 .crop-cropper {
   width: 100%;
   height: 100%;
   background: #111118;
+  touch-action: none;
 }
 
 .crop-cropper .advanced-cropper__background-wrapper {
@@ -898,15 +906,24 @@
   }
 
   .crop-fixed-header {
-    top: 5rem;
-    left: 1rem;
+    top: 4.3rem;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 0.85rem 1.25rem 2rem;
+    background: linear-gradient(to bottom, rgba(10, 11, 18, 0.98) 0%, rgba(10, 11, 18, 0.85) 55%, rgba(10, 11, 18, 0) 100%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
+    box-shadow: none;
+    z-index: 99;
   }
 
   .crop-screen {
     grid-template-columns: 1fr;
     height: auto;
     min-height: calc(100vh - 5.5rem);
-    padding-top: 3.5rem;
+    padding-top: 5.5rem;
   }
 
   .crop-sidebar {
@@ -1055,15 +1072,15 @@
   content: "";
   position: absolute;
   left: 0;
-  bottom: -35px;
+  bottom: 0;
   width: 40px;
   height: 40px;
-  transform: rotate(45deg) translate(30%, 40%);
+  transform: translateY(35px) rotate(45deg) translate(30%, 40%);
   background: #2e86de;
   box-shadow: 32px -34px 0 5px #0097e6;
   animation: slide 2s infinite ease-in-out alternate;
   backface-visibility: hidden;
-  will-change: bottom;
+  will-change: transform;
 }
 
 .loader:after {
@@ -1095,13 +1112,13 @@
 
 @keyframes slide {
   0%, 100% {
-    bottom: -35px;
+    transform: translateY(35px) rotate(45deg) translate(30%, 40%);
   }
   20%, 80% {
-    bottom: 2px;
+    transform: translateY(-2px) rotate(45deg) translate(30%, 40%);
   }
   25%, 75% {
-    bottom: -2px;
+    transform: translateY(2px) rotate(45deg) translate(30%, 40%);
   }
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, Image, ShieldCheck, Sparkles, Upload, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
+import { Camera, Image, ShieldCheck, Sparkles, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
 import { Cropper } from 'react-advanced-cropper';
 import { useNavigate } from 'react-router-dom';
 import { performOCR } from '../engine/ocrService.js';
@@ -17,8 +17,6 @@ const UploadPage = () => {
   const [err, seterr] = useState('');
   const [cropmode, setcropmode] = useState(false);
   const [busy, setbusy] = useState(false);
-  const [logs, setlogs] = useState([]);
-  const [progress, setprogress] = useState(null);
 
   const pref = useRef(null);
 
@@ -137,11 +135,11 @@ const UploadPage = () => {
 
   useEffect(() => {
     if (!file) {
-      setprev('');
+      Promise.resolve().then(() => setprev(''));
       return undefined;
     }
     const url = URL.createObjectURL(file);
-    setprev(url);
+    Promise.resolve().then(() => setprev(url));
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
@@ -185,7 +183,6 @@ const UploadPage = () => {
     const shot = canvas.toDataURL('image/jpeg', 0.9);
     setcropmode(false);
     setbusy(true);
-    setprogress({ pct: 0, label: 'Initializing...' });
     
     canvas.toBlob(async (blob) => {
       if (!blob) {
@@ -196,21 +193,21 @@ const UploadPage = () => {
       const cropped = new File([blob], file.name, { type: 'image/jpeg' });
       setfile(cropped);
       
-      try {
-        setprogress({ pct: 50, label: 'Running OCR...' });
-        const subjects = await performOCR(cropped);
-        
-        if (!subjects || subjects.length === 0) {
-          seterr('No table detected. Please retry with a clearer image.');
-        } else {
-          setprogress({ pct: 100, label: 'Done!' });
-          navigate('/result', { state: { rows: subjects, image: shot } });
+      setTimeout(async () => {
+        try {
+          const subjects = await performOCR(cropped);
+          
+          if (!subjects || subjects.length === 0) {
+            seterr('No table detected. Please retry with a clearer image.');
+          } else {
+            navigate('/result', { state: { rows: subjects, image: shot } });
+          }
+        } catch (e) {
+          seterr('OCR Error: ' + e.message);
+        } finally {
+          setbusy(false);
         }
-      } catch (e) {
-        seterr('OCR Error: ' + e.message);
-      } finally {
-        setbusy(false);
-      }
+      }, 150);
     }, 'image/jpeg', 0.95);
   }, [file, navigate]);
 
@@ -355,7 +352,7 @@ const UploadPage = () => {
                   width: state.imageSize.width,
                   height: state.imageSize.height
                 })}
-                defaultPosition={(state) => ({
+                defaultPosition={() => ({
                   left: 0,
                   top: 0
                 })}
