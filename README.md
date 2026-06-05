@@ -1,4 +1,4 @@
-# calci
+# calci 🧮
 
 Intelligent semester grade calculator and result parser.
 
@@ -53,4 +53,4 @@ npm run build
 
 ## contributors
 
-Crafted by [`@anshdhariwal`](https://github.com/anshdhariwal) and [`@jigyasaphogat`](https://github.com/jigyasaphogat) with love
+Crafted by [`@anshdhariwal`](https://github.com/anshdhariwal) and [`@jigyasaphogat`](https://github.com/jigyasaphogat) with 💕
