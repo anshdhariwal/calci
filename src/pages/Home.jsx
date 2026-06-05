@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaKeyboard, FaFileUpload, FaBolt, FaShieldAlt, FaMagic, FaCheckCircle, FaLayerGroup, FaQuestionCircle } from 'react-icons/fa';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Zap, Upload, ChevronRight, Calculator, Layers, CheckCircle } from 'lucide-react';
+import { Zap, Upload, ChevronRight, Calculator, Layers, CheckCircle, Shield, HelpCircle, Sparkles } from 'lucide-react';
 import './Home.css';
 
 const ShinyText = ({
@@ -323,7 +322,7 @@ const Home = () => {
         <div className="features-container-ls">
           <Link to="/upload" className="ls-card theme-red group">
             <div className="ls-icon-wrapper">
-              <FaMagic size={24} />
+              <Sparkles size={24} />
             </div>
             <h3>Smart OCR</h3>
             <p>Don't type. Just snap. Our advanced Optical Character Recognition extracts your subjects and grades in seconds.</p>
@@ -331,7 +330,7 @@ const Home = () => {
 
           <Link to="/manual" className="ls-card theme-green group">
              <div className="ls-icon-wrapper">
-              <FaBolt size={24} />
+              <Zap size={24} />
             </div>
             <h3>Instant Analysis</h3>
             <p>Get your SGPA calculated immediately with automated formula application. No manual math errors.</p>
@@ -339,7 +338,7 @@ const Home = () => {
 
           <div className="ls-card theme-blue group">
              <div className="ls-icon-wrapper">
-              <FaShieldAlt size={24} />
+              <Shield size={24} />
             </div>
             <h3>Privacy First</h3>
             <p>Your data stays on your device. We use client-side processing, so your results are never uploaded to a cloud server.</p>
@@ -398,19 +397,19 @@ const Home = () => {
         <h2 className="section-title">FAQ</h2>
         <div className="faq-grid">
           <div className="faq-card glass">
-            <div className="faq-q"><FaQuestionCircle /> Why do I need to verify?</div>
+            <div className="faq-q"><HelpCircle size={16} /> Why do I need to verify?</div>
             <div className="faq-a">
               OCR is fast, but screenshots vary. Verification ensures every subject row is correct before you calculate.
             </div>
           </div>
           <div className="faq-card glass">
-            <div className="faq-q"><FaQuestionCircle /> What if OCR misses a “+”?</div>
+            <div className="faq-q"><HelpCircle size={16} /> What if OCR misses a “+”?</div>
             <div className="faq-a">
               You can correct the grade in one click from the dropdown. We also tune OCR for “A+ / B+” style grades.
             </div>
           </div>
           <div className="faq-card glass">
-            <div className="faq-q"><FaQuestionCircle /> Do you upload my results?</div>
+            <div className="faq-q"><HelpCircle size={16} /> Do you upload my results?</div>
             <div className="faq-a">
               No. CALCI runs in your browser and processes locally.
             </div>

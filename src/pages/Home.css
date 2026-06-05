@@ -15,6 +15,8 @@
   padding-top: 4.5rem;
   padding-bottom: 0;
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .home-container::before {
@@ -650,43 +652,43 @@
 
 @keyframes shiny-text-animation {
   0% {
-    background-position: -120% center;
+    background-position: 120% center;
   }
   100% {
-    background-position: 120% center;
+    background-position: -80% center;
   }
 }
 
 @keyframes shiny-text-animation-rtl {
   0% {
-    background-position: 120% center;
+    background-position: -80% center;
   }
   100% {
-    background-position: -120% center;
+    background-position: 120% center;
   }
 }
 
 @keyframes shiny-text-yoyo {
   0% {
-    background-position: -120% center;
-  }
-  50% {
     background-position: 120% center;
   }
+  50% {
+    background-position: -80% center;
+  }
   100% {
-    background-position: -120% center;
+    background-position: 120% center;
   }
 }
 
 @keyframes shiny-text-yoyo-rtl {
   0% {
-    background-position: 120% center;
+    background-position: -80% center;
   }
   50% {
-    background-position: -120% center;
+    background-position: 120% center;
   }
   100% {
-    background-position: 120% center;
+    background-position: -80% center;
   }
 }
 
@@ -1002,6 +1004,11 @@
   .hero-section {
     text-align: center;
     padding: 3rem 0;
+  }
+
+  .hero-block-top {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
   }
 
   .hero-title {

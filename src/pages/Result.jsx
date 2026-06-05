@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { Download, Plus, Share2, Trash2, X, Edit3, RefreshCw } from 'lucide-react';
@@ -14,7 +14,7 @@ const ResultPage = () => {
   const shot = typeof st.image === 'string' ? st.image : '';
 
   const [rows, setrows] = useState(base.map((r, idx) => ({
-    id: r.id || Date.now() + idx,
+    id: r.id !== undefined ? r.id : idx,
     subject: r.subject || '',
     credits: r.credits || '',
     grade: r.grade || '',
@@ -34,43 +34,56 @@ const ResultPage = () => {
   const imgwrap = useRef(null);
   const dragref = useRef({ x: 0, y: 0, px: 0, py: 0 });
 
-  useEffect(() => {
-    setrows(base.map((r, idx) => ({
-      id: r.id || Date.now() + idx,
-      subject: r.subject || '',
-      credits: r.credits || '',
-      grade: r.grade || '',
-      isManual: r.isManual !== undefined ? r.isManual : false,
-    })));
-  }, [st.rows]);
-
-  if (!shot || base.length === 0) {
-    return <Navigate to="/upload" replace />;
-  }
 
   const clamp = (val, lim) => Math.max(-lim, Math.min(lim, val));
 
-  const fitpos = (x, y, z) => {
+  const fitpos = useCallback((x, y, z) => {
     const wrap = imgwrap.current;
     if (!wrap) return { x, y };
     const rect = wrap.getBoundingClientRect();
-    const maxx = (z - 1) * rect.width * 0.5;
-    const maxy = (z - 1) * rect.height * 0.5;
+    const img = wrap.querySelector('.result-image');
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      const maxx = (z - 1) * rect.width * 0.5;
+      const maxy = (z - 1) * rect.height * 0.5;
+      return { x: clamp(x, maxx), y: clamp(y, maxy) };
+    }
+    const ar = img.naturalWidth / img.naturalHeight;
+    const cw = rect.width;
+    const ch = rect.height;
+    let w = cw;
+    let h = ch;
+    if (cw / ch > ar) {
+      w = ch * ar;
+    } else {
+      h = cw / ar;
+    }
+    const zw = w * z;
+    const zh = h * z;
+    const maxx = zw > cw ? (zw - cw) * 0.5 : 0;
+    const maxy = zh > ch ? (zh - ch) * 0.5 : 0;
     return { x: clamp(x, maxx), y: clamp(y, maxy) };
-  };
+  }, []);
 
   const onzoom = (val) => {
-    const z = Math.max(1, Math.min(2.6, val));
+    const z = Math.max(1, Math.min(2.86, val));
     setzoom(z);
     setpos(p => fitpos(p.x, p.y, z));
   };
+
+  const zoomRef = useRef(zoom);
+  const onzoomRef = useRef(onzoom);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+    onzoomRef.current = onzoom;
+  });
 
   useEffect(() => {
     if (!drag) return;
     const move = (e) => {
       const dx = e.clientX - dragref.current.px;
       const dy = e.clientY - dragref.current.py;
-      const next = fitpos(dragref.current.x + dx, dragref.current.y + dy, zoom);
+      const next = fitpos(dragref.current.x + dx, dragref.current.y + dy, zoomRef.current);
       setpos(next);
     };
     const up = () => setdrag(false);
@@ -80,74 +93,95 @@ const ResultPage = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
     };
-  }, [drag, zoom]);
+  }, [drag, fitpos]);
 
-  const tp = useRef({ d: 0, z: 1 })
-
-  const onTouchStart = (e) => {
-    if (e.touches.length === 2) {
-      const d = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      tp.current = { d, z: zoom }
-    }
-  }
-
-  const onTouchMove = (e) => {
-    if (e.touches.length === 2 && tp.current.d > 0) {
-      const d = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      const factor = d / tp.current.d
-      onzoom(tp.current.z * factor)
-    }
-  }
-
-  const onTouchEnd = () => {
-    tp.current = { d: 0, z: zoom }
-  }
+  const tp = useRef({ d: 0, z: 1 });
 
   useEffect(() => {
-    const wrap = imgwrap.current
-    if (!wrap) return
-    const handleWheel = (e) => {
-      e.preventDefault()
-      const next = zoom + (e.deltaY < 0 ? 0.1 : -0.1)
-      onzoom(next)
-    }
-    wrap.addEventListener('wheel', handleWheel, { passive: false })
+    const wrap = imgwrap.current;
+    if (!wrap) return;
+
+    const handleTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        setdrag(false);
+        const d = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        tp.current = { d, z: zoomRef.current };
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length === 2 && tp.current.d > 0) {
+        e.preventDefault();
+        const d = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = d / tp.current.d;
+        if (onzoomRef.current) {
+          onzoomRef.current(tp.current.z * factor);
+        }
+      } else if (e.touches.length === 1 && zoomRef.current > 1) {
+        e.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (e.touches.length < 2) {
+        tp.current = { d: 0, z: zoomRef.current };
+      }
+    };
+
+    wrap.addEventListener('touchstart', handleTouchStart, { passive: false });
+    wrap.addEventListener('touchmove', handleTouchMove, { passive: false });
+    wrap.addEventListener('touchend', handleTouchEnd, { passive: false });
+
     return () => {
-      wrap.removeEventListener('wheel', handleWheel)
-    }
-  }, [zoom])
+      wrap.removeEventListener('touchstart', handleTouchStart);
+      wrap.removeEventListener('touchmove', handleTouchMove);
+      wrap.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const wrap = imgwrap.current;
+    if (!wrap) return;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      const next = zoomRef.current + (e.deltaY < 0 ? 0.1 : -0.1);
+      if (onzoomRef.current) {
+        onzoomRef.current(next);
+      }
+    };
+    wrap.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      wrap.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   const ondragstart = (e) => {
-    if (zoom <= 1) return
-    if (e.pointerType === 'touch' && !e.isPrimary) return
-    setdrag(true)
-    dragref.current = { px: e.clientX, py: e.clientY, x: pos.x, y: pos.y }
-  };
-
-  const scoremsg = (val) => {
-    if (val >= 9) return 'Outstanding performance';
-    if (val >= 8) return 'Very good result';
-    if (val >= 7) return 'Solid, keep pushing';
-    if (val >= 6) return 'Decent effort';
-    return 'Time to grind harder';
+    if (zoomRef.current <= 1) return;
+    if (e.pointerType === 'touch' && !e.isPrimary) return;
+    setdrag(true);
+    dragref.current = { px: e.clientX, py: e.clientY, x: pos.x, y: pos.y };
   };
 
   const fire = (val) => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const countMultiplier = isMobile ? 0.3 : 0.5;
+
     if (val >= 9) {
-      confetti({ particleCount: 180, spread: 80, startVelocity: 45, origin: { y: 0.6 } });
-      confetti({ particleCount: 120, spread: 120, startVelocity: 30, origin: { y: 0.4 } });
+      confetti({ particleCount: Math.round(120 * countMultiplier), spread: 60, startVelocity: 35, origin: { y: 0.65 } });
+      confetti({ particleCount: Math.round(80 * countMultiplier), spread: 80, startVelocity: 25, origin: { y: 0.55 } });
     } else if (val >= 8) {
-      confetti({ particleCount: 120, spread: 70, startVelocity: 35, origin: { y: 0.65 } });
+      confetti({ particleCount: Math.round(90 * countMultiplier), spread: 55, startVelocity: 30, origin: { y: 0.65 } });
     } else if (val >= 7.5) {
-      confetti({ particleCount: 70, spread: 55, startVelocity: 24, origin: { y: 0.7 } });
+      confetti({ particleCount: Math.round(60 * countMultiplier), spread: 45, startVelocity: 22, origin: { y: 0.7 } });
     } else {
-      confetti({ particleCount: 35, spread: 45, startVelocity: 18, origin: { y: 0.75 }, colors: ['#f87171', '#fbbf24'] });
+      confetti({ particleCount: Math.round(30 * countMultiplier), spread: 35, startVelocity: 16, origin: { y: 0.75 }, colors: ['#f87171', '#fbbf24'] });
     }
   };
 
@@ -248,8 +282,13 @@ const ResultPage = () => {
     const file = new File([blob], filename, { type: 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: 'CALCI Result' });
-      } catch (e) {
+        await navigator.share({
+          files: [file],
+          title: 'CALCI Result',
+          text: 'Hi, i calculated my SGPA using CALCI in seconds !!, you can do the same with anshdhariwal.github.io/calci/'
+        });
+      } catch {
+        void 0;
       }
     } else {
       const url = URL.createObjectURL(blob);
@@ -308,7 +347,6 @@ const ResultPage = () => {
     'F': '#ef4444', 'I': '#64748b', 'X': '#64748b'
   };
 
-  const totalCredits = rows.reduce((acc, r) => acc + (parseFloat(r.credits) || 0), 0);
   const passedCredits = rows.reduce((acc, r) => {
     const c = parseFloat(r.credits) || 0;
     const g = String(r.grade || '').toUpperCase().trim();
@@ -318,6 +356,10 @@ const ResultPage = () => {
   const topGrade = rows.length > 0 
     ? rows.reduce((best, r) => getGradePoints(r.grade) > getGradePoints(best.grade) ? r : best, rows[0])?.grade || ''
     : '';
+
+  if (!shot || base.length === 0) {
+    return <Navigate to="/upload" replace />;
+  }
 
   return (
     <section className="result-page">
@@ -331,16 +373,13 @@ const ResultPage = () => {
         <div className="result-grid-layout">
           <div className="result-card result-media">
             <div className="result-card-head">
-              <h2 className="result-title">Match your table</h2>
+              <h2 className="result-title">Verify</h2>
               <div className="result-hint">Pinch to zoom, drag to pan</div>
             </div>
             <div
               className={`result-media-frame ${zoom > 1 ? 'is-zoom' : ''}`}
               ref={imgwrap}
               onPointerDown={ondragstart}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
               onDragStart={(e) => e.preventDefault()}
             >
               <div className="reference-badge">REFERENCE IMAGE</div>
