@@ -77,12 +77,7 @@ export const generateResultCard = async (studentName, rows, sgpa) => {
   ctx.fillStyle = stripe;
   ctx.fillRect(24, 24, width - 48, 3);
 
-  let logo = null;
-  try {
-    logo = await loadimg('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgNDggNDgiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCI+PHBhdGggZmlsbD0iIzJGODhGRiIgc3Ryb2tlPSIjMDAwIiBkPSJNNDEgMTMuOTk5N0wyNCA0TDcgMTMuOTk5N1YzMy45OTk4TDI0IDQ0TDQxIDMzLjk5OThWMTMuOTk5N1oiLz48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZD0iTTE2IDE4Ljk5NzZMMjMuOTkzMiAyNC4wMDAyTDMxLjk5NTEgMTguOTk3NiIvPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBkPSJNMjQgMjRWMzMiLz48L2c+PC9zdmc+');
-  } catch {
-    logo = null;
-  }
+  const logo = await loadimg('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgNDggNDgiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCI+PHBhdGggZmlsbD0iIzJGODhGRiIgc3Ryb2tlPSIjMDAwIiBkPSJNNDEgMTMuOTk5N0wyNCA0TDcgMTMuOTk5N1YzMy45OTk4TDI0IDQ0TDQxIDMzLjk5OThWMTMuOTk5N1oiLz48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZD0iTTE2IDE4Ljk5NzZMMjMuOTkzMiAyNC4wMDAyTDMxLjk5NTEgMTguOTk3NiIvPjxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBkPSJNMjQgMjRWMzMiLz48L2c+PC9zdmc+').catch(() => null);
   if (logo) ctx.drawImage(logo, 54, 44, 30, 30);
 
   ctx.fillStyle = '#60a5fa';

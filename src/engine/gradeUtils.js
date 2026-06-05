@@ -47,5 +47,4 @@ export const calculateSGPA = (subjects) => {
   return parseFloat((weightedPoints / totalCredits).toFixed(2));
 };
 
-// Alias for compatibility
 export const calcSGPA = calculateSGPA;

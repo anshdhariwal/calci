@@ -5,23 +5,19 @@ const STORAGE_KEY = 'liked_calciapp_pagelikes';
 export const getlikes = async () => {
   try {
     const res = await fetch(`${BASE}/get/${KEY}`);
-    if (!res.ok) return 0;
+    if (!res.ok) return null;
     const data = await res.json();
-    return data.value || 0;
+    return data.value !== undefined ? data.value : null;
   } catch {
-    return 0;
+    return null;
   }
 };
 
 export const uplike = async () => {
-  try {
-    const res = await fetch(`${BASE}/hit/${KEY}`);
-    if (!res.ok) throw new Error('failed');
-    const data = await res.json();
-    return data.value;
-  } catch (err) {
-    throw err;
-  }
+  const res = await fetch(`${BASE}/hit/${KEY}`);
+  if (!res.ok) throw new Error('failed');
+  const data = await res.json();
+  return data.value;
 };
 
 export const hasliked = () => {
