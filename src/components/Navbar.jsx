@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useCallback, useState } from 'react';
-import { FaSnowflake } from 'react-icons/fa';
-import { Info, X, Menu } from 'lucide-react';
+import { useCallback, useState, useEffect } from 'react';
+import { X, Menu, Snowflake } from 'lucide-react';
 import useSnowEffect from '../hooks/useSnowEffect.js';
-import { GRADES } from '../engine/gradeUtils.js';
 import LikeButton from './LikeButton.jsx';
+import { getlikes, uplike, hasliked, setliked } from '../services/countApi.js';
 import './Navbar.css';
 
 const SPRING = {
@@ -161,8 +160,50 @@ const Navbar = () => {
   const loc = useLocation();
   const { isSnowing, toggleSnow } = useSnowEffect();
   const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const [showScheme, setShowScheme] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [likesState, setLikesState] = useState({ liked: false, count: 0, loading: true });
+
+  useEffect(() => {
+    const initializeLikes = async () => {
+      const userLiked = hasliked();
+      setLikesState(prev => ({ ...prev, liked: userLiked }));
+      
+      let attempts = 0;
+      let currentCount = null;
+      
+      while (attempts < 3 && currentCount === null) {
+        currentCount = await getlikes();
+        if (currentCount === null && attempts < 2) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        attempts++;
+      }
+      
+      setLikesState(prev => ({
+        ...prev,
+        count: currentCount !== null ? currentCount : 0,
+        loading: false
+      }));
+    };
+
+    initializeLikes();
+  }, []);
+
+  const handleLike = async () => {
+    if (likesState.liked || likesState.loading) return;
+
+    try {
+      const newCount = await uplike();
+      setLikesState({
+        liked: true,
+        count: newCount,
+        loading: false
+      });
+      setliked();
+    } catch (error) {
+      console.error('Failed to like:', error);
+    }
+  };
 
   const navVariants = {
     hidden: { opacity: 0, y: isReducedMotion ? 0 : -22, x: '-50%' },
@@ -258,7 +299,12 @@ const Navbar = () => {
 
           <div className="nav-actions">
             <motion.div custom={0} variants={actionVariants}>
-              <LikeButton />
+              <LikeButton
+                liked={likesState.liked}
+                count={likesState.count}
+                loading={likesState.loading}
+                onLike={handleLike}
+              />
             </motion.div>
 
             <motion.div custom={1} variants={actionVariants} className="nav-snow-toggle-wrapper">
@@ -267,8 +313,8 @@ const Navbar = () => {
                 onChange={toggleSnow}
                 variant="icon"
                 icons={{
-                  on: <FaSnowflake style={{ color: '#3b82f6' }} />,
-                  off: <FaSnowflake style={{ color: '#94a3b8' }} />
+                  on: <Snowflake style={{ color: '#3b82f6' }} />,
+                  off: <Snowflake style={{ color: '#94a3b8' }} />
                 }}
                 size="md"
                 label="Toggle snow effect"
@@ -292,13 +338,15 @@ const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={() => setMobileMenuOpen(false)}
           >
             <motion.div
               className="mobile-menu-content"
-              initial={{ y: -20, opacity: 0 }}
+              initial={{ y: -12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
+              exit={{ y: -12, opacity: 0 }}
+              transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
             >
               {['Home', 'Smart Upload', 'Manual Entry', 'Repository'].map((text) => {
@@ -320,91 +368,23 @@ const Navbar = () => {
                 );
               })}
               <div className="mobile-menu-footer">
-                <LikeButton />
+                <LikeButton
+                  liked={likesState.liked}
+                  count={likesState.count}
+                  loading={likesState.loading}
+                  onLike={handleLike}
+                />
                 <AnimatedToggle
                   checked={isSnowing}
                   onChange={toggleSnow}
                   variant="icon"
                   icons={{
-                    on: <FaSnowflake style={{ color: '#3b82f6' }} />,
-                    off: <FaSnowflake style={{ color: '#94a3b8' }} />
+                    on: <Snowflake style={{ color: '#3b82f6' }} />,
+                    off: <Snowflake style={{ color: '#94a3b8' }} />
                   }}
                   size="md"
                   label="Toggle snow effect"
                 />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button
-        type="button"
-        className="global-info-btn"
-        onClick={() => setShowScheme(true)}
-        aria-label="View Grading Scheme"
-      >
-        <Info size={16} />
-      </button>
-
-      <AnimatePresence>
-        {showScheme && (
-          <motion.div
-            className="scheme-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowScheme(false)}
-          >
-            <motion.div
-              className="scheme-modal"
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', duration: 0.4 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="scheme-head">
-                <h3>Grading Scheme</h3>
-                <button
-                  type="button"
-                  className="scheme-close"
-                  onClick={() => setShowScheme(false)}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="scheme-body">
-                <table className="scheme-table">
-                  <thead>
-                    <tr>
-                      <th>Grade</th>
-                      <th>Performance</th>
-                      <th>Grade Point</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {GRADES.map((g) => (
-                      <tr key={g.grade}>
-                        <td className="grade-badge">{g.grade}</td>
-                        <td>{g.label}</td>
-                        <td className="grade-pts">{g.points.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="scheme-rules">
-                  <p>Grades from A+ to D are pass grades.</p>
-                  <p className="formula">
-                    Semester Grade Point Average (SGPA) = <span className="math">∑(Ci * Gi) / ∑Ci</span>
-                  </p>
-                  <ul>
-                    <li><strong>Ci</strong> = Number of credits assigned to i-th subject</li>
-                    <li><strong>Gi</strong> = Grade point equivalent assigned to i-th subject</li>
-                  </ul>
-                </div>
               </div>
             </motion.div>
           </motion.div>
