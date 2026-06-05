@@ -422,7 +422,7 @@
 /* Action buttons */
 .upload-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0.7rem;
   margin-top: 1rem;
 }
@@ -993,14 +993,7 @@
   }
 }
 
-@media (min-width: 900px) {
-  .upload-btn-camera {
-    display: none;
-  }
-  .upload-actions {
-    grid-template-columns: 1fr;
-  }
-}
+
 
 @media (max-height: 760px) {
   .upload-page {
@@ -1192,89 +1185,4 @@
   .upload-cta {
     width: 100%;
   }
-}
-
-.camera-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.camera-modal {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #000;
-}
-
-.camera-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.camera-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  z-index: 10;
-}
-
-.camera-btn-cancel {
-  background: none;
-  border: none;
-  color: #fff;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  transition: opacity 0.2s;
-}
-
-.camera-btn-cancel:hover {
-  opacity: 0.8;
-}
-
-.camera-btn-capture {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  border: 4px solid #fff;
-  background: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  transition: transform 0.15s ease;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.camera-btn-capture:active {
-  transform: translateX(-50%) scale(0.92);
-}
-
-.camera-btn-capture-inner {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #fff;
 }
