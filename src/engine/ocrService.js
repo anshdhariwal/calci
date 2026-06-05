@@ -9,7 +9,12 @@ function preprocessForTable(imageFile) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
-      const scale = 2.5;
+      let scale = 1.5;
+      if (img.naturalWidth < 1000) {
+        scale = 2.0;
+      } else if (img.naturalWidth > 2000) {
+        scale = 2000 / img.naturalWidth;
+      }
       canvas.width = img.naturalWidth * scale;
       canvas.height = img.naturalHeight * scale;
       
@@ -81,6 +86,12 @@ export const performOCR = async (imageFile) => {
       { 
         logger: m => console.log(m),
         tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+().&/,- ',
+        tessedit_enable_doc_dict: '0',
+        load_system_dawg: '0',
+        load_freq_dawg: '0',
+        load_punc_dawg: '0',
+        load_number_dawg: '0',
       }
     );
 
@@ -88,14 +99,15 @@ export const performOCR = async (imageFile) => {
     console.log(result.data.text);
     console.log('==========================================');
     
+    let lines = [];
     if (result.data.words && result.data.words.length > 0) {
       const reconstructedLines = reconstructTable(result.data.words, 10);
-      var lines = reconstructedLines
+      lines = reconstructedLines
         .map(line => line.replace(/\s+/g, ' ').trim())
         .filter(line => line.length > 0);
     } else {
       const text = result.data.text || '';
-      var lines = text.split('\n')
+      lines = text.split('\n')
         .map(line => line.replace(/\s+/g, ' ').trim())
         .filter(line => line.length > 0);
     }
