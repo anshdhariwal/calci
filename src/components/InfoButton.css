@@ -77,6 +77,15 @@
   color: var(--text-color);
 }
 
+.scheme-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
 .scheme-close {
   background: none;
   border: none;

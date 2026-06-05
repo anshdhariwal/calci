@@ -36,7 +36,10 @@ const InfoButton = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="scheme-head">
-                <h3>Grading Scheme</h3>
+                <div>
+                  <h3>Grading Scheme</h3>
+                  <p className="scheme-subtitle">It uses Chandigarh University's official grades, credits and formulas</p>
+                </div>
                 <button
                   type="button"
                   className="scheme-close"
