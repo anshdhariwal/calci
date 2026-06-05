@@ -463,10 +463,6 @@ const UploadPage = () => {
         <div aria-hidden="true" className="upload-line" data-side="right"></div>
 
         <div className="upload-copy">
-          <div className="upload-badge">
-            <Zap size={12} />
-            smart upload
-          </div>
           <h1 className="upload-title">
             Smart upload for{' '}
             <span className="upload-title-accent">clean results.</span>
