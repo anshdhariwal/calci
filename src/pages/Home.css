@@ -97,7 +97,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3rem 2rem 2.5rem;
+  padding: 4.5rem 2rem 2.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -140,21 +140,7 @@
   margin-bottom: 2rem;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-}
+
 
 .hero-title-new {
   font-size: 4rem;

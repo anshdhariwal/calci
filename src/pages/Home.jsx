@@ -273,10 +273,7 @@ const Home = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="hero-content-new"
             >
-              <div className="hero-badge">
-                <Zap size={12} />
-                The Intelligent Grade Calculator
-              </div>
+
               <h1 className="hero-title-new">
                 Smarter Result <br />
                 <ShinyText 
