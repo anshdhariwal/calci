@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { Download, Plus, Share2, Trash2, X, Edit3, RefreshCw } from 'lucide-react';
+import { Download, Plus, Share2, Trash2, X, Edit3, RefreshCw, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VALID_GRADES, GRADE_POINTS, calcSGPA } from '../engine/gradeUtils.js';
 import { generateResultCard } from '../utils/imageGenerator.js';
@@ -578,6 +578,15 @@ const ResultPage = () => {
                     Share
                   </button>
                 </div>
+                <a 
+                  className="modal-star-btn" 
+                  href="https://github.com/anshdhariwal/calci" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Star size={15} fill="#fbbf24" stroke="#fbbf24" />
+                  Star us on GitHub
+                </a>
                 <button className="modal-recalc-btn" type="button" onClick={() => setpop(false)}>
                   <Edit3 size={15} />
                   Edit & Recalculate
