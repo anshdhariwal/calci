@@ -2,7 +2,7 @@
 
 Intelligent semester grade calculator and result parser.
 
-Live at: https://anshdhariwal.github.io/calci/
+Live at: [`Github Pages`](https://anshdhariwal.github.io/calci/)
 
 * 100 percent client side result parsing with no data logging
 * Crop and scan grade sheet photos using browser character recognition
@@ -18,15 +18,15 @@ Live at: https://anshdhariwal.github.io/calci/
 
 ## technical stack
 
-* React and Vite for the interface
-* Tesseract JS for client side character recognition
-* Framer Motion for animations
-* Canvas API for report card image generation
+* `React` and `Vite` for the interface
+* `Tesseract.js` for client side character recognition
+* `Framer Motion` for animations
+* `Canvas API` for report card image generation
 
 ## components and structure
 
 * Root Info Button: Stands independent from the navbar to prevent unnecessary re renders.
-* Like Button: Uses CounterAPI to track total likes with localStorage duplicate prevention.
+* Like Button: Uses `CounterAPI` to track total likes with localStorage duplicate prevention.
 * Custom Crop Tool: Provides precise crop selection with responsive touch support.
 * Unified Likes State: Lifted to the navbar to synchronize desktop and mobile counters in real time.
 
@@ -53,4 +53,4 @@ npm run build
 
 ## contributors
 
-Crafted by @anshdhariwal and @jigyasaphogat with love
+Crafted by [`@anshdhariwal`](https://github.com/anshdhariwal) and [`@jigyasaphogat`](https://github.com/jigyasaphogat) with love
