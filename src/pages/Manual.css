@@ -1,8 +1,6 @@
 .manual-page {
   position: relative;
   min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
   overflow-x: hidden;
   padding-top: 6rem;
   padding-bottom: 2rem;
@@ -13,7 +11,7 @@
 }
 
 .manual-bg {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
   background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.22), transparent 45%),
@@ -22,7 +20,7 @@
 }
 
 .manual-grid {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
