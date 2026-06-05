@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, X, Download, Share2, Edit3, RefreshCw, Calculator, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, X, Download, Share2, Edit3, RefreshCw, Calculator, Sparkles, Zap, ShieldCheck, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { VALID_GRADES, GRADE_POINTS, calcSGPA } from '../engine/gradeUtils.js';
 import { generateResultCard } from '../utils/imageGenerator.js';
@@ -429,6 +429,15 @@ const ManualPage = () => {
                     Share
                   </button>
                 </div>
+                <a 
+                  className="manual-modal-star-btn" 
+                  href="https://github.com/anshdhariwal/calci" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Star size={15} fill="#fbbf24" stroke="#fbbf24" />
+                  Star us on GitHub
+                </a>
                 <button className="manual-modal-recalc-btn" type="button" onClick={() => setpop(false)}>
                   <Edit3 size={15} />
                   Edit & Recalculate
