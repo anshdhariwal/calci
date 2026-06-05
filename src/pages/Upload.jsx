@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, Image, ShieldCheck, Sparkles, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
 import { Cropper } from 'react-advanced-cropper';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { performOCR } from '../engine/ocrService.js';
 import 'react-advanced-cropper/dist/style.css';
 import './Upload.css';
@@ -17,8 +18,63 @@ const UploadPage = () => {
   const [err, seterr] = useState('');
   const [cropmode, setcropmode] = useState(false);
   const [busy, setbusy] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
   const pref = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+      });
+      streamRef.current = stream;
+      setCameraActive(true);
+      seterr('');
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 50);
+    } catch (e) {
+      console.warn(e);
+      cref.current?.click();
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+  };
+
+  const captureFrame = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 1920;
+    canvas.height = video.videoHeight || 1080;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const capturedFile = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+        setfile(capturedFile);
+      }
+      stopCamera();
+    }, 'image/jpeg', 0.95);
+  };
 
   const getcenter = (el) => {
     const { width, height } = el.getBoundingClientRect();
@@ -561,7 +617,7 @@ const UploadPage = () => {
               <Image size={18} />
               {file ? 'Change image' : 'Choose image'}
             </button>
-            <button type="button" className="upload-btn-secondary upload-btn-camera" onClick={() => cref.current?.click()}>
+            <button type="button" className="upload-btn-secondary upload-btn-camera" onClick={startCamera}>
               <Camera size={18} />
               Use camera
             </button>
@@ -593,6 +649,25 @@ const UploadPage = () => {
         capture="environment"
         onChange={onchange}
       />
+
+      <AnimatePresence>
+        {cameraActive && (
+          <div className="camera-overlay">
+            <div className="camera-modal">
+              <video ref={videoRef} autoPlay playsInline className="camera-video"></video>
+              <div className="camera-controls">
+                <button type="button" className="camera-btn-cancel" onClick={stopCamera}>
+                  Cancel
+                </button>
+                <button type="button" className="camera-btn-capture" onClick={captureFrame}>
+                  <div className="camera-btn-capture-inner"></div>
+                </button>
+                <div style={{ width: '60px' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
