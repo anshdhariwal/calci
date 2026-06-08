@@ -35,6 +35,8 @@ jobs:
 
       - name: build
         run: npm run build
+        env:
+          VITE_OCR_SPACE_KEY: ${{ secrets.VITE_OCR_SPACE_KEY }}
 
       - name: add nojekyll file
         run: touch dist/.nojekyll

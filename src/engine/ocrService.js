@@ -1,237 +1,219 @@
-import Tesseract from 'tesseract.js';
+const API_URL = 'https://api.ocr.space/parse/image';
 
-function preprocessForTable(imageFile) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(imageFile);
-    
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      let scale = 1.5;
-      if (img.naturalWidth < 1000) {
-        scale = 2.0;
-      } else if (img.naturalWidth > 2000) {
-        scale = 2000 / img.naturalWidth;
-      }
-      canvas.width = img.naturalWidth * scale;
-      canvas.height = img.naturalHeight * scale;
-      
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-        const binary = gray < 140 ? 0 : 255;
-        data[i] = data[i+1] = data[i+2] = binary;
-      }
-      
-      ctx.putImageData(imageData, 0, 0);
-      URL.revokeObjectURL(url);
-      resolve(canvas);
-    };
-    
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    
-    img.src = url;
-  });
+const getApiKey = () => import.meta.env.VITE_OCR_SPACE_KEY;
+
+function normgrade(tok) {
+  if (!tok) return null;
+  const cleaned = tok.replace(/[^A-Z0-9+\[\]]/gi, '').toUpperCase();
+  if (cleaned.length > 4) return null;
+  const grades = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'E', 'F', 'I', 'X'];
+  if (grades.includes(cleaned)) return cleaned;
+  if (cleaned === '8') return 'B';
+  if (cleaned === '[3]' || cleaned === 'I3I' || cleaned === 'L3L' || cleaned === '|3|') return 'B';
+  if (cleaned.startsWith('B')) {
+    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
+      return 'B+';
+    }
+    return 'B';
+  }
+  if (cleaned.startsWith('A')) {
+    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
+      return 'A+';
+    }
+    return 'A';
+  }
+  if (cleaned.startsWith('C')) {
+    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
+      return 'C+';
+    }
+    return 'C';
+  }
+  return null;
 }
 
-function reconstructTable(words, rowTolerance = 10) {
-  if (!words || words.length === 0) return [];
-  
-  const sorted = [...words].sort((a, b) =>
-    (a.bbox.y0 + a.bbox.y1) / 2 - (b.bbox.y0 + b.bbox.y1) / 2
-  );
-  
-  const rows = [];
-  let currentRow = [sorted[0]];
-  
-  for (let i = 1; i < sorted.length; i++) {
-    const prevMidY = (sorted[i-1].bbox.y0 + sorted[i-1].bbox.y1) / 2;
-    const currMidY = (sorted[i].bbox.y0 + sorted[i].bbox.y1) / 2;
-    
-    if (Math.abs(currMidY - prevMidY) <= rowTolerance) {
-      currentRow.push(sorted[i]);
-    } else {
-      rows.push(currentRow);
-      currentRow = [sorted[i]];
+function normcredits(tok) {
+  if (!tok) return null;
+  const cleaned = tok.replace(/[^0-9.,]/g, '');
+  if (!cleaned) return null;
+  const dotCleaned = cleaned.replace(',', '.');
+  if (dotCleaned.includes('.')) {
+    const val = parseFloat(dotCleaned);
+    if (val > 0 && val <= 10) return val;
+  }
+  if (dotCleaned.startsWith('15')) {
+    return 1.5;
+  }
+  const first = dotCleaned.charAt(0);
+  const digit = parseInt(first, 10);
+  if (digit >= 1 && digit <= 8) {
+    return digit;
+  }
+  const val = parseFloat(dotCleaned);
+  if (val > 0 && val <= 10) return val;
+  return null;
+}
+
+function parseMarkdownTable(raw) {
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.startsWith('|'));
+  if (lines.length < 2) return [];
+
+  const rows = lines.map(line => {
+    const cells = line.split('|').map(c => c.trim());
+    return cells.slice(1, -1).map(text => ({ text, conf: 88 }));
+  });
+
+  return rows.filter(row => !row.every(c => /^-+$/.test(c.text)));
+}
+
+function mapCols(grid) {
+  let subjectColIdx = 1;
+  let creditColIdx = 4;
+  let gradeColIdx = 5;
+
+  for (let r = 0; r < Math.min(grid.length, 3); r++) {
+    const row = grid[r];
+    const texts = row.map(c => c.text.toLowerCase());
+
+    const hasSubject = texts.some(t => t.includes('subject') || t.includes('title') || t.includes('name') || t.includes('course'));
+    const hasCredit = texts.some(t => t.includes('credit') || t.includes('cr'));
+    const hasGrade = texts.some(t => t.includes('grade') || t.includes('gr'));
+
+    if (hasSubject || hasCredit || hasGrade) {
+      let sIdx = texts.findIndex(t => t.includes('name') || t.includes('title'));
+      if (sIdx === -1) {
+        sIdx = texts.findIndex(t => t.includes('subject') && !t.includes('code'));
+      }
+      if (sIdx === -1) {
+        sIdx = texts.findIndex(t => t.includes('subject') || t.includes('course'));
+      }
+      const cIdx = texts.findIndex(t => t.includes('credit') || t.includes('cr'));
+      const gIdx = texts.findIndex(t => t.includes('grade') || t.includes('gr'));
+
+      if (sIdx !== -1) subjectColIdx = sIdx;
+      if (cIdx !== -1) creditColIdx = cIdx;
+      if (gIdx !== -1) gradeColIdx = gIdx;
+
+      break;
     }
   }
-  rows.push(currentRow);
+
+  const rows = [];
+  grid.forEach(row => {
+    const texts = row.map(c => c.text.toLowerCase());
+    const isHeader = texts.some(t => t.includes('subject') || t.includes('credit') || t.includes('grade') || t.includes('internal') || t.includes('external'));
+    if (isHeader) return;
+
+    const subject = row[subjectColIdx]?.text || '';
+    const credits = row[creditColIdx]?.text || '';
+    const grade = row[gradeColIdx]?.text || '';
+
+    if (subject || credits || grade) {
+      rows.push({ subject, credits, grade });
+    }
+  });
+
+  return { rows };
+}
+
+function postprocess(rows) {
+  const courseCodeRegex = /\b\d{2}[A-Z]{2,4}[-]?\d{2,3}\b/gi;
+  const performanceLabels = /\b(Very Good|Outstanding|Excellent|Good|Average|Below Average|Fair|Poor|Pass|Fail|Absent|Incomplete)\b/gi;
+
+  const subjects = [];
+  rows.forEach(row => {
+    const normGrade = normgrade(row.grade);
+    const normCredit = normcredits(row.credits);
+
+    if (normGrade && normCredit) {
+      let cleanedName = row.subject.trim();
+      cleanedName = cleanedName.replace(courseCodeRegex, '').trim();
+      cleanedName = cleanedName.replace(performanceLabels, '').trim();
+      cleanedName = cleanedName.replace(/[-,;:|]+$/, '').trim();
+      cleanedName = cleanedName.replace(/\s{2,}/g, ' ').trim();
+
+      if (cleanedName.length >= 3) {
+        subjects.push({
+          id: Date.now() + subjects.length,
+          subject: cleanedName,
+          credits: String(normCredit),
+          grade: normGrade,
+          isManual: false,
+        });
+      }
+    }
+  });
+
+  return subjects;
+}
+
+export async function runOcrSpace(imageDataUrl, apiKey) {
+  const form = new FormData();
+  form.append('base64Image', imageDataUrl);
+  form.append('language', 'eng');
+  form.append('isTable', 'true');
+  form.append('detectOrientation', 'true');
+  form.append('scale', 'true');
+  form.append('OCREngine', '3');
+  form.append('isOverlayRequired', 'false');
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { apikey: apiKey },
+      body: form,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      throw new Error('TIMEOUT');
+    }
+    throw new Error('Network error reaching OCR.space. Check your internet connection.');
+  }
+
+  if (!response.ok) {
+    throw new Error(`OCR.space HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  if (data.IsErroredOnProcessing) {
+    const msg = data.ParsedResults?.[0]?.ErrorMessage || data.ErrorMessage || 'Unknown error';
+    throw new Error(`OCR.space error: ${msg}`);
+  }
+
+  const rawText = data.ParsedResults?.[0]?.ParsedText || '';
   
-  return rows.map(row =>
-    row
-      .sort((a, b) => a.bbox.x0 - b.bbox.x0)
-      .map(w => w.text)
-      .join(' ')
-  );
+  console.log('========== RAW OCR.SPACE OUTPUT ==========');
+  console.log(rawText);
+
+  const grid = parseMarkdownTable(rawText);
+
+  if (!grid.length) throw new Error('OCR.space returned no table data. Try cropping tighter.');
+
+  const { rows } = mapCols(grid);
+  const corrected = postprocess(rows);
+
+  return corrected;
 }
 
 export const performOCR = async (imageFile) => {
-  try {
-    const preprocessedCanvas = await preprocessForTable(imageFile);
-    
-    const result = await Tesseract.recognize(
-      preprocessedCanvas,
-      'eng',
-      { 
-        logger: m => console.log(m),
-        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
-        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+().&/,- ',
-        tessedit_enable_doc_dict: '0',
-        load_system_dawg: '0',
-        load_freq_dawg: '0',
-        load_punc_dawg: '0',
-        load_number_dawg: '0',
-      }
-    );
-
-    console.log('========== RAW TESSERACT OUTPUT ==========');
-    console.log(result.data.text);
-    console.log('==========================================');
-    
-    let lines = [];
-    if (result.data.words && result.data.words.length > 0) {
-      const reconstructedLines = reconstructTable(result.data.words, 10);
-      lines = reconstructedLines
-        .map(line => line.replace(/\s+/g, ' ').trim())
-        .filter(line => line.length > 0);
-    } else {
-      const text = result.data.text || '';
-      lines = text.split('\n')
-        .map(line => line.replace(/\s+/g, ' ').trim())
-        .filter(line => line.length > 0);
-    }
-
-    const subjects = [];
-
-    const headerTerms = ['subject', 'code', 'title', 'credit', 'grade', 'points', 'result'];
-    const gradeTokenRegex = /^(O|A\+|A|B\+|B|C\+|C|D|E|F|I|X)$/i;
-    const numericTokenRegex = /^\d+(\.\d+)?$/;
-    const courseCodeRegex = /\b\d{2}[A-Z]{2,4}[-]?\d{2,3}\b/gi;
-    const performanceLabels = /\b(Very Good|Outstanding|Excellent|Good|Average|Below Average|Fair|Poor|Pass|Fail|Absent|Incomplete)\b/gi;
-    
-    let pendingSubjectParts = [];
-    
-    lines.forEach(line => {
-      const lowerLine = line.toLowerCase();
-
-      const headerMatches = headerTerms.filter(term => lowerLine.includes(term));
-      if (headerMatches.length >= 2) {
-        pendingSubjectParts = [];
-        return;
-      }
-
-      if (line.length < 3) return;
-
-      const tokens = line.split(' ');
-
-      let gradeIndex = -1;
-      for (let i = tokens.length - 1; i >= 0; i--) {
-        const cleaned = tokens[i].replace(/[^A-Z+]/gi, '');
-        if (gradeTokenRegex.test(cleaned)) {
-          gradeIndex = i;
-          break;
-        }
-      }
-
-      let creditIndex = -1;
-      if (gradeIndex !== -1) {
-        for (let i = gradeIndex - 1; i >= 0; i--) {
-          if (numericTokenRegex.test(tokens[i])) {
-            creditIndex = i;
-            break;
-          }
-        }
-        if (creditIndex === -1) {
-          for (let i = gradeIndex + 1; i < tokens.length; i++) {
-            if (numericTokenRegex.test(tokens[i])) {
-              creditIndex = i;
-              break;
-            }
-          }
-        }
-      }
-
-      if (gradeIndex !== -1 && creditIndex !== -1) {
-        const creditValue = parseFloat(tokens[creditIndex]);
-        if (!Number.isFinite(creditValue) || creditValue <= 0 || creditValue > 10) {
-          pendingSubjectParts = [];
-          return;
-        }
-
-        const normalizedCredits = creditValue % 1 === 0 ? String(creditValue) : creditValue.toFixed(1);
-
-        let gradeRaw = tokens[gradeIndex].toUpperCase().replace(/[^A-Z+]/g, '');
-
-        if (!gradeRaw.endsWith('+')) {
-          const plusNear =
-            tokens[gradeIndex + 1] === '+' ||
-            tokens[gradeIndex - 1] === '+' ||
-            line.includes('+');
-          if (plusNear && /^[A-D]$/i.test(gradeRaw)) {
-            gradeRaw = `${gradeRaw}+`;
-          }
-        }
-
-        if (!gradeTokenRegex.test(gradeRaw)) {
-          pendingSubjectParts = [];
-          return;
-        }
-
-        const nameTokens = tokens.filter((tok, idx) => {
-          if (idx === gradeIndex || idx === creditIndex) return false;
-          if (numericTokenRegex.test(tok)) return false;
-          const cleaned = tok.replace(/[^A-Z+]/gi, '');
-          if (gradeTokenRegex.test(cleaned)) return false;
-          return true;
-        });
-
-        const currentLineName = nameTokens.join(' ').replace(/\s{2,}/g, ' ').trim().replace(/\||[-]/g, '');
-        const fullName = [...pendingSubjectParts, currentLineName].join(' ').trim();
-
-        let cleanedName = fullName;
-        cleanedName = cleanedName.replace(courseCodeRegex, '').trim();
-        cleanedName = cleanedName.replace(performanceLabels, '').trim();
-        cleanedName = cleanedName.replace(/\s{2,}/g, ' ').trim();
-        cleanedName = cleanedName.replace(/[-,;:]+$/, '').trim();
-        
-        if (cleanedName.length >= 3) {
-          subjects.push({
-            id: Date.now() + subjects.length,
-            subject: cleanedName,
-            credits: normalizedCredits,
-            grade: gradeRaw,
-            isManual: false,
-          });
-        }
-
-        pendingSubjectParts = [];
-      } else {
-        const cleanLine = line.replace(/\||[-]/g, '').trim();
-        if (cleanLine.length > 0) {
-          pendingSubjectParts.push(cleanLine);
-        }
-      }
-    });
-
-    if (subjects.length === 0) {
-      return [];
-    }
-
-    return subjects;
-
-  } catch (error) {
-    console.error("OCR Error:", error);
-    throw error;
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('OCR API Key is missing. This is a temporary setup error.');
   }
+
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(imageFile);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+
+  return await runOcrSpace(base64, apiKey);
 };

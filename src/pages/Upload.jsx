@@ -16,6 +16,9 @@ const UploadPage = () => {
   const [err, seterr] = useState('');
   const [cropmode, setcropmode] = useState(false);
   const [busy, setbusy] = useState(false);
+  const [scanError, setScanError] = useState('');
+  const [pendingFile, setPendingFile] = useState(null);
+  const [pendingShot, setPendingShot] = useState('');
 
   const pref = useRef(null);
 
@@ -175,6 +178,24 @@ const UploadPage = () => {
     }
   }, []);
 
+  const doOCR = useCallback(async (imgFile, shotData) => {
+    setbusy(true);
+    setScanError('');
+    try {
+      const subjects = await performOCR(imgFile);
+      if (!subjects || subjects.length === 0) {
+        setScanError('No table detected. Please retry with a clearer image.');
+        setbusy(false);
+      } else {
+        setbusy(false);
+        navigate('/result', { state: { rows: subjects, image: shotData } });
+      }
+    } catch (e) {
+      setbusy(false);
+      setScanError(e.message === 'TIMEOUT' ? 'Request timed out after 15 seconds. Please try again.' : 'OCR Error: ' + e.message);
+    }
+  }, [navigate]);
+
   const onscan = useCallback(async () => {
     if (!cropref.current) return;
     const canvas = cropref.current.getCanvas();
@@ -182,6 +203,7 @@ const UploadPage = () => {
     const shot = canvas.toDataURL('image/jpeg', 0.9);
     setcropmode(false);
     setbusy(true);
+    setScanError('');
     
     canvas.toBlob(async (blob) => {
       if (!blob) {
@@ -191,24 +213,12 @@ const UploadPage = () => {
       }
       const cropped = new File([blob], file.name, { type: 'image/jpeg' });
       setfile(cropped);
+      setPendingFile(cropped);
+      setPendingShot(shot);
       
-      setTimeout(async () => {
-        try {
-          const subjects = await performOCR(cropped);
-          
-          if (!subjects || subjects.length === 0) {
-            seterr('No table detected. Please retry with a clearer image.');
-          } else {
-            navigate('/result', { state: { rows: subjects, image: shot } });
-          }
-        } catch (e) {
-          seterr('OCR Error: ' + e.message);
-        } finally {
-          setbusy(false);
-        }
-      }, 150);
+      setTimeout(() => doOCR(cropped, shot), 150);
     }, 'image/jpeg', 0.95);
-  }, [file, navigate]);
+  }, [file, navigate, doOCR]);
 
   const onchange = (event) => {
     const picked = event.target.files?.[0];
@@ -233,7 +243,7 @@ const UploadPage = () => {
     pick(picked);
   };
 
-  if (busy) {
+  if (busy || scanError) {
     return (
       <section key="loading-view" className="upload-page loading-active">
         <div className="upload-bg" aria-hidden="true">
@@ -244,12 +254,36 @@ const UploadPage = () => {
 
         <div className="loading-screen container">
           <div className="upload-panel scan-loading-panel">
-            <div className="aesthetic-loader-container">
-              <div className="loader"></div>
-              <footer className="scan-loading-footer">
-                <span>Analyzing Image...</span>
-              </footer>
-            </div>
+            {scanError ? (
+              <div className="scan-error-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', textAlign: 'center' }}>
+                <div style={{ color: '#ef4444', marginBottom: '0.5rem' }}><RefreshCw size={32} /></div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>Something went wrong</h3>
+                <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem', maxWidth: '300px', lineHeight: '1.4' }}>{scanError}</p>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button 
+                    className="upload-cta" 
+                    onClick={() => doOCR(pendingFile, pendingShot)}
+                    style={{ padding: '0.6rem 1.5rem', minWidth: '100px' }}
+                  >
+                    Retry
+                  </button>
+                  <button 
+                    className="upload-btn-primary" 
+                    onClick={() => { setScanError(''); setcropmode(true); }}
+                    style={{ padding: '0.6rem 1.5rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', minWidth: '100px' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="aesthetic-loader-container">
+                <div className="loader"></div>
+                <footer className="scan-loading-footer">
+                  <span>Analyzing Image...</span>
+                </footer>
+              </div>
+            )}
           </div>
         </div>
       </section>
