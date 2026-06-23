@@ -1,10 +1,97 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Image, ShieldCheck, Sparkles, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw } from 'lucide-react';
+import { Image, ShieldCheck, Sparkles, Zap, ArrowLeft, RotateCw, RotateCcw, FlipHorizontal, Maximize, RefreshCw, X } from 'lucide-react';
 import { Cropper } from 'react-advanced-cropper';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { performOCR } from '../engine/ocrService.js';
 import 'react-advanced-cropper/dist/style.css';
 import './Upload.css';
+
+const makehash = (str) => {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h).toString(16);
+};
+
+const formatWait = (ms) => {
+  const hrs = Math.floor(ms / 3600000);
+  const mins = Math.ceil((ms % 3600000) / 60000);
+  if (hrs > 0) return `${hrs}h ${mins}m`;
+  return `${mins}m`;
+};
+
+const getfp = () => {
+  const parts = [
+    navigator.userAgent,
+    navigator.language,
+    navigator.platform,
+    navigator.hardwareConcurrency || 0,
+    new Date().getTimezoneOffset()
+  ];
+  return makehash(parts.join('|'));
+};
+
+const getstate = () => {
+  let raw = localStorage.getItem('calci_usr_state');
+  if (!raw) {
+    const cookies = document.cookie.split(';');
+    const cookie = cookies.find(c => c.trim().startsWith('calci_usr_state='));
+    if (cookie) {
+      raw = decodeURIComponent(cookie.split('=')[1]);
+    }
+  }
+  if (raw) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const savestate = (state) => {
+  const str = JSON.stringify(state);
+  try {
+    localStorage.setItem('calci_usr_state', str);
+  } catch {
+    void 0;
+  }
+  const exp = new Date();
+  exp.setTime(exp.getTime() + (365 * 24 * 60 * 60 * 1000));
+  document.cookie = `calci_usr_state=${encodeURIComponent(str)};expires=${exp.toUTCString()};path=/`;
+};
+
+const checklimit = () => {
+  const now = Date.now();
+  let state = getstate();
+  const fp = getfp();
+  if (!state) {
+    state = { fp, uid: Math.random().toString(36).substring(2) + now.toString(36), scans: [] };
+  }
+  state.scans = state.scans.filter(t => now - t < 86400000);
+  savestate(state);
+  if (state.scans.length >= 5) {
+    const oldest = state.scans[0];
+    const wait = 86400000 - (now - oldest);
+    return { ok: false, wait };
+  }
+  return { ok: true, wait: 0 };
+};
+
+const addscan = () => {
+  const now = Date.now();
+  let state = getstate();
+  const fp = getfp();
+  if (!state) {
+    state = { fp, uid: Math.random().toString(36).substring(2) + now.toString(36), scans: [] };
+  }
+  state.scans.push(now);
+  state.scans = state.scans.filter(t => now - t < 86400000);
+  savestate(state);
+};
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -19,6 +106,9 @@ const UploadPage = () => {
   const [scanError, setScanError] = useState('');
   const [pendingFile, setPendingFile] = useState(null);
   const [pendingShot, setPendingShot] = useState('');
+  const [toast, setToast] = useState('');
+  const toastTimeoutRef = useRef(null);
+  const [lim, setLim] = useState(() => checklimit());
 
   const pref = useRef(null);
 
@@ -145,12 +235,31 @@ const UploadPage = () => {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const pick = (picked) => {
+  const showToast = useCallback((msg) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast('');
+    }, 5000);
+  }, []);
+
+  const pick = useCallback((picked) => {
     if (!picked) return;
-    const ext = picked.name.split('.').pop()?.toLowerCase();
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      seterr(`Rate limit reached. Please wait ${formatWait(l.wait)}.`);
+      showToast(`Scan blocked. Please wait ${formatWait(l.wait)}.`);
+      return;
+    }
+    const name = picked.name || 'image.png';
+    const type = picked.type || 'image/png';
+    const ext = name.split('.').pop()?.toLowerCase();
     const allowedExts = ['png', 'jpg', 'jpeg'];
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-    const isAllowed = allowedTypes.includes(picked.type) || allowedExts.includes(ext);
+    const isAllowed = allowedTypes.includes(type) || allowedExts.includes(ext);
     if (!isAllowed) {
       seterr('Unsupported file format. Please use PNG, JPG, or JPEG.');
       return;
@@ -158,7 +267,46 @@ const UploadPage = () => {
     seterr('');
     setfile(picked);
     setcropmode(false);
-  };
+  }, [showToast]);
+
+  const handlePaste = useCallback((event) => {
+    if (cropmode || busy) return;
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      showToast(`Rate limit reached. Wait ${formatWait(l.wait)}.`);
+      return;
+    }
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const pastedFile = items[i].getAsFile();
+        if (pastedFile) {
+          pick(pastedFile);
+          showToast('Image pasted from clipboard');
+        }
+        break;
+      }
+    }
+  }, [cropmode, busy, pick, showToast]);
+
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [handlePaste]);
+
+
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const onrotate = useCallback((deg) => {
     if (cropref.current) {
@@ -179,6 +327,15 @@ const UploadPage = () => {
   }, []);
 
   const doOCR = useCallback(async (imgFile, shotData) => {
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      setScanError(`Rate limit reached. Please wait ${formatWait(l.wait)}.`);
+      setbusy(false);
+      return;
+    }
+    addscan();
+    setLim(checklimit());
     setbusy(true);
     setScanError('');
     try {
@@ -198,6 +355,13 @@ const UploadPage = () => {
 
   const onscan = useCallback(async () => {
     if (!cropref.current) return;
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      seterr(`Rate limit reached. Please wait ${formatWait(l.wait)}.`);
+      showToast(`Scan blocked. Please wait ${formatWait(l.wait)}.`);
+      return;
+    }
     const canvas = cropref.current.getCanvas();
     if (!canvas) return;
     const shot = canvas.toDataURL('image/jpeg', 0.9);
@@ -218,9 +382,15 @@ const UploadPage = () => {
       
       setTimeout(() => doOCR(cropped, shot), 150);
     }, 'image/jpeg', 0.95);
-  }, [file, navigate, doOCR]);
+  }, [file, doOCR, showToast]);
 
   const onchange = (event) => {
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      showToast(`Rate limit reached. Wait ${formatWait(l.wait)}.`);
+      return;
+    }
     const picked = event.target.files?.[0];
     pick(picked);
     event.target.value = '';
@@ -239,6 +409,12 @@ const UploadPage = () => {
   const ondrop = (event) => {
     event.preventDefault();
     setdrag(false);
+    const l = checklimit();
+    if (!l.ok) {
+      setLim(l);
+      showToast(`Rate limit reached. Wait ${formatWait(l.wait)}.`);
+      return;
+    }
     const picked = event.dataTransfer.files?.[0];
     pick(picked);
   };
@@ -499,7 +675,7 @@ const UploadPage = () => {
             <span className="upload-title-accent">clean results.</span>
           </h1>
           <p className="upload-sub">
-            Drop a clear screenshot or a phone photo. Calci detects the table, fixes common OCR slips, and keeps everything on your device.
+            Choose a clear photo of your semester result sheet. Processing is done entirely on your device.
           </p>
 
           <div className="upload-points">
@@ -519,89 +695,142 @@ const UploadPage = () => {
         </div>
 
         <div className="upload-panel" ref={pref} onPointerMove={onmove}>
-          {err ? (
-            <div className="upload-error-banner">
-              <span className="error-dot" />
-              <span>{err}</span>
-            </div>
+          {!lim.ok ? (
+            <>
+              <div className="upload-error-banner" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 700 }}>
+                  <span className="error-dot" />
+                  <span>Rate-Limit Reached (Wait {formatWait(lim.wait)})</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'rgba(248, 113, 113, 0.78)', fontWeight: 500 }}>
+                  To keep Calci running for everyone, we had to use ratelimiting for users so all users can use this tool for free
+                </span>
+              </div>
+              <div className="rate-limit-blocked-content">
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <radialGradient id="faceGrad" cx="50%" cy="40%" r="50%" fx="50%" fy="30%">
+                      <stop offset="0%" stopColor="#FFDD67"/>
+                      <stop offset="85%" stopColor="#FF9E1B"/>
+                      <stop offset="100%" stopColor="#E27D00"/>
+                    </radialGradient>
+                    <linearGradient id="eyeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#222222"/>
+                      <stop offset="100%" stopColor="#000000"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="54" fill="url(#faceGrad)" stroke="#D47300" strokeWidth="1.5"/>
+                  <path d="M 26 44 C 32 38, 42 32, 48 36" stroke="#603800" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                  <path d="M 94 44 C 88 38, 78 32, 72 36" stroke="#603800" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                  <g>
+                    <ellipse cx="40" cy="58" rx="15" ry="17" fill="url(#eyeGrad)"/>
+                    <ellipse cx="40" cy="58" rx="13.5" ry="15.5" stroke="#FFFFFF" strokeOpacity="0.15" strokeWidth="1" fill="none"/>
+                    <circle cx="36" cy="51" r="7.5" fill="#FFFFFF"/>
+                    <circle cx="45" cy="65" r="3.5" fill="#FFFFFF"/>
+                    <circle cx="32" cy="63" r="1.8" fill="#FFFFFF"/>
+                  </g>
+                  <g>
+                    <ellipse cx="80" cy="58" rx="15" ry="17" fill="url(#eyeGrad)"/>
+                    <ellipse cx="80" cy="58" rx="13.5" ry="15.5" stroke="#FFFFFF" strokeOpacity="0.15" strokeWidth="1" fill="none"/>
+                    <circle cx="76" cy="51" r="7.5" fill="#FFFFFF"/>
+                    <circle cx="85" cy="65" r="3.5" fill="#FFFFFF"/>
+                    <circle cx="72" cy="63" r="1.8" fill="#FFFFFF"/>
+                  </g>
+                  <path d="M 52 86 C 55 80, 65 80, 68 86" stroke="#603800" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+                </svg>
+                <div className="rate-limit-footer">Sorry for Inconvinence</div>
+                <Link to="/manual" className="rate-limit-btn">
+                  Use Manual Entry
+                </Link>
+              </div>
+            </>
           ) : (
-            <p className="upload-panel-tip">
-              <span className="tip-dot" />
-              Note: Works best with uploaded screenshots
-            </p>
-          )}
-          <div
-            className={`upload-drop ${drag ? 'is-drag' : ''} ${prev ? 'has-preview' : ''} ${err ? 'has-error' : ''}`}
-            onClick={() => fref.current?.click()}
-            onDragOver={ondrag}
-            onDragLeave={onleave}
-            onDrop={ondrop}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                fref.current?.click();
-              }
-            }}
-          >
-            {prev ? (
-              <div className="upload-preview">
-                <img src={prev} alt="Upload preview" />
-                <div className="upload-preview-mask"></div>
-                <div className="upload-preview-info">
+            <>
+              {err ? (
+                <div className="upload-error-banner">
+                  <span className="error-dot" />
+                  <span>{err}</span>
+                </div>
+              ) : (
+                <p className="upload-panel-tip">
+                  <span className="tip-dot" />
+                  Note: Works best with uploaded screenshots
+                </p>
+              )}
+              <div
+                className={`upload-drop ${drag ? 'is-drag' : ''} ${prev ? 'has-preview' : ''} ${err ? 'has-error' : ''}`}
+                onClick={() => fref.current?.click()}
+                onDragOver={ondrag}
+                onDragLeave={onleave}
+                onDrop={ondrop}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    fref.current?.click();
+                  }
+                }}
+              >
+                {prev ? (
+                  <div className="upload-preview">
+                    <img src={prev} alt="Upload preview" />
+                    <div className="upload-preview-mask"></div>
+                    <div className="upload-preview-info">
+                      <Image size={18} />
+                      <span>{file?.name}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="upload-empty">
+                    <div className="upload-icon">
+                      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect x="1" y="1" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
+                        <rect x="19" y="1" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
+                        <rect x="1" y="19" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
+                        <rect x="12" y="12" width="4" height="4" rx="1" fill="currentColor" opacity="0.9"/>
+                        <line x1="14" y1="6" x2="14" y2="11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
+                        <line x1="14" y1="17" x2="14" y2="22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
+                        <line x1="6" y1="14" x2="11" y2="14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
+                        <line x1="17" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
+                      </svg>
+                    </div>
+                    <h3>Drop image here</h3>
+                    <p>or click to browse your device</p>
+                    <div className="upload-formats">
+                      <span className="upload-fmt-tag">PNG</span>
+                      <span className="upload-fmt-tag">JPG</span>
+                      <span className="upload-fmt-tag">JPEG</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="upload-meta">
+                {file ? (
+                  <span>{Math.round(file.size / 1024)} KB | {file.type.replace('image/', '').toUpperCase()}</span>
+                ) : (
+                  <span>PNG, JPG, JPEG up to 10MB</span>
+                )}
+              </div>
+
+              <div className="upload-actions">
+                <button type="button" className="upload-btn-primary" onClick={() => fref.current?.click()}>
                   <Image size={18} />
-                  <span>{file?.name}</span>
-                </div>
+                  {file ? 'Change image' : 'Choose image'}
+                </button>
               </div>
-            ) : (
-              <div className="upload-empty">
-                <div className="upload-icon">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect x="1" y="1" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
-                    <rect x="19" y="1" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
-                    <rect x="1" y="19" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.5"/>
-                    <rect x="12" y="12" width="4" height="4" rx="1" fill="currentColor" opacity="0.9"/>
-                    <line x1="14" y1="6" x2="14" y2="11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
-                    <line x1="14" y1="17" x2="14" y2="22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
-                    <line x1="6" y1="14" x2="11" y2="14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
-                    <line x1="17" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.6"/>
-                  </svg>
-                </div>
-                <h3>Drop image here</h3>
-                <p>or click to browse your device</p>
-                <div className="upload-formats">
-                  <span className="upload-fmt-tag">PNG</span>
-                  <span className="upload-fmt-tag">JPG</span>
-                  <span className="upload-fmt-tag">JPEG</span>
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div className="upload-meta">
-            {file ? (
-              <span>{Math.round(file.size / 1024)} KB | {file.type.replace('image/', '').toUpperCase()}</span>
-            ) : (
-              <span>PNG, JPG, JPEG up to 10MB</span>
-            )}
-          </div>
-
-          <div className="upload-actions">
-            <button type="button" className="upload-btn-primary" onClick={() => fref.current?.click()}>
-              <Image size={18} />
-              {file ? 'Change image' : 'Choose image'}
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="upload-cta"
-            onClick={() => setcropmode(true)}
-            disabled={!file}
-          >
-            Proceed
-          </button>
+              <button
+                type="button"
+                className="upload-cta"
+                onClick={() => setcropmode(true)}
+                disabled={!file}
+              >
+                Proceed
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -612,6 +841,26 @@ const UploadPage = () => {
         accept="image/png, image/jpeg, image/jpg"
         onChange={onchange}
       />
+
+      {toast && (
+        <div className="toast-container">
+          <div className="c-toast">
+            <div className="c-toast-icon">
+              <Sparkles size={16} />
+            </div>
+            <div className="c-toast-body">
+              <div className="c-toast-title">{toast}</div>
+            </div>
+            <button
+              type="button"
+              className="c-toast-close"
+              onClick={() => setToast('')}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
