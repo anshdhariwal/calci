@@ -1,4 +1,6 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
@@ -33,6 +35,28 @@
   --surface: #0a0a0a;
   --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
   --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --c-tx-primary: #F8F5EE;
+  --c-tx-dark: #1A1917;
+  --c-tx-muted: #BCBAB2;
+  --c-fill-ghost: rgba(255, 255, 255, 0.06);
+  --c-fill-ghost-h: rgba(255, 255, 255, 0.10);
+  --c-fill-sec: rgba(255, 255, 255, 0.10);
+  --c-fill-sec-h: rgba(255, 255, 255, 0.14);
+  --c-b1: rgba(218, 216, 208, 0.14);
+  --c-b2: rgba(218, 216, 208, 0.22);
+  --c-b3: rgba(218, 216, 208, 0.36);
+  --c-orange: #D97757;
+  --c-orange-h: #C6613F;
+  --c-red-fill: #E34848;
+  --r-xs: 6px;
+  --r-sm: 12px;
+  --r-md: 14px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+  --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-md: 0 4px 14px rgba(0, 0, 0, 0.5), 0 2px 5px rgba(0, 0, 0, 0.3);
+  --sh-lg: 0 8px 30px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 body {
