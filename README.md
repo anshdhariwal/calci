@@ -12,7 +12,7 @@ Intelligent semester grade calculator and result parser. Crop a photo of your re
 ---
 
 > [!NOTE]
-> **OCR currently uses the OCR.Space API** — your cropped image is sent to their server for processing. SGPA calculation, result verification, and report card export still run entirely in your browser. This is a temporary setup while Tesseract.js is being reconfigured for client-side use.
+> **OCR currently uses the OCR.Space API** : your cropped image is sent to their server for processing. SGPA calculation, result verification, and report card export still run entirely in your browser. This is a temporary setup while Tesseract.js is being reconfigured for client-side use.
 
 ---
 
