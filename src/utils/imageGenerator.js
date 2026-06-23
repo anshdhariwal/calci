@@ -10,7 +10,7 @@ const loadimg = (src) =>
 
 const gradecolor = (grade) => {
   const g = String(grade || '').toUpperCase().trim();
-  if (g === 'O' || g === 'A+') return '#34d399';
+  if (g === 'A+') return '#34d399';
   if (g === 'A') return '#60a5fa';
   if (g === 'B+') return '#a78bfa';
   if (g === 'B') return '#94a3b8';
@@ -106,7 +106,7 @@ export const generateResultCard = async (studentName, rows, sgpa) => {
 
   ctx.fillStyle = '#f1f5f9';
   ctx.font = '700 26px "Inter", sans-serif';
-  ctx.fillText(studentName, 54, 112);
+  ctx.fillText(studentName, 54, 112, 800);
 
   const sep = ctx.createLinearGradient(54, 0, width - 54, 0);
   sep.addColorStop(0, 'rgba(96,165,250,0)');
