@@ -397,7 +397,7 @@ const ResultPage = () => {
           <div className="result-card result-table">
             <div className="result-card-head">
               <div className="result-title-group">
-                <h2 className="result-title">Verify subjects</h2>
+                <h2 className="result-title">Double check results</h2>
                 <div className="editable-badge">EDITABLE TABLE</div>
               </div>
               <button type="button" className="result-btn-primary header-calc-btn" onClick={oncalc}>
@@ -497,6 +497,7 @@ const ResultPage = () => {
                           type="button" 
                           onClick={() => delrow(i)}
                           title="Delete row"
+                          disabled={rows.length === 1}
                         >
                           <Trash2 size={13} />
                         </button>
