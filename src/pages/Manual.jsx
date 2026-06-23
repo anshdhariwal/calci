@@ -220,11 +220,11 @@ const ManualPage = () => {
             manual entry
           </div>
           <h1 className="manual-title">
-            Direct input for{' '}
-            <span className="manual-title-accent">precise control.</span>
+            Type your grades{' '}
+            <span className="manual-title-accent">directly.</span>
           </h1>
           <p className="manual-sub">
-            Enter your subjects, credits, and grades manually. Perfect for when you have your data ready or prefer typing over uploading.
+            Fill out the table below to calculate your SGPA. Use this if you do not have a clear photo of your result sheet.
           </p>
 
           <div className="manual-points">
