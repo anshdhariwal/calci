@@ -261,16 +261,14 @@ const UploadPage = () => {
                 <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem', maxWidth: '300px', lineHeight: '1.4' }}>{scanError}</p>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
                   <button 
-                    className="upload-cta" 
+                    className="upload-cta scan-error-btn" 
                     onClick={() => doOCR(pendingFile, pendingShot)}
-                    style={{ padding: '0.6rem 1.5rem', minWidth: '100px' }}
                   >
                     Retry
                   </button>
                   <button 
-                    className="upload-btn-primary" 
+                    className="upload-cta scan-error-btn scan-error-btn-secondary" 
                     onClick={() => { setScanError(''); setcropmode(true); }}
-                    style={{ padding: '0.6rem 1.5rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', minWidth: '100px' }}
                   >
                     Cancel
                   </button>
