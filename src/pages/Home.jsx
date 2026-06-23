@@ -284,10 +284,10 @@ const Home = () => {
                 />
               </h1>
               <p className="hero-subtitle-new">
-                Eliminate manual errors. CALCI uses advanced OCR to parse your result sheets instantly, securely, and entirely in your browser.
+                Upload a photo of your result sheet. Calci reads the grades, credits, and subject names so you do not have to type them.
               </p>
             </motion.div>
-
+ 
             <svg aria-hidden="true" className="hero-corner-arc" data-side="bottom-right" fill="none" height="75" viewBox="0 0 75 75" width="75">
               <path d="M74 37.5C74 30.281 71.8593 23.2241 67.8486 17.2217C63.838 11.2193 58.1375 6.541 51.4679 3.7784C44.7984 1.0158 37.4595 0.292977 30.3792 1.70134C23.2989 3.1097 16.7952 6.58599 11.6906 11.6906C6.58599 16.7952 3.1097 23.2989 1.70134 30.3792C0.292977 37.4595 1.0158 44.7984 3.7784 51.4679C6.541 58.1375 11.2193 63.838 17.2217 67.8486C23.2241 71.8593 30.281 74 37.5 74" stroke="url(#arc-grad-br)" strokeDasharray="2 2" />
               <defs>
@@ -298,7 +298,7 @@ const Home = () => {
                 </radialGradient>
               </defs>
             </svg>
-
+ 
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -317,7 +317,7 @@ const Home = () => {
             </motion.div>
           </div>
       </section>
-
+ 
       <section className="features-section-ls container">
         <div className="features-container-ls">
           <Link to="/upload" className="ls-card theme-red group">
@@ -325,23 +325,23 @@ const Home = () => {
               <Sparkles size={24} />
             </div>
             <h3>Smart OCR</h3>
-            <p>Don't type. Just snap. Our advanced Optical Character Recognition extracts your subjects and grades in seconds.</p>
+            <p>Take a picture of your result sheet. Calci automatically extracts subjects and grades using client side OCR.</p>
           </Link>
-
+ 
           <Link to="/manual" className="ls-card theme-green group">
              <div className="ls-icon-wrapper">
               <Zap size={24} />
             </div>
-            <h3>Instant Analysis</h3>
-            <p>Get your SGPA calculated immediately with automated formula application. No manual math errors.</p>
+            <h3>Auto Calculation</h3>
+            <p>Your SGPA is calculated using the official university formula. You can edit any value in the table if needed.</p>
           </Link>
-
+ 
           <div className="ls-card theme-blue group">
              <div className="ls-icon-wrapper">
               <Shield size={24} />
             </div>
-            <h3>Privacy First</h3>
-            <p>Your data stays on your device. We use client-side processing, so your results are never uploaded to a cloud server.</p>
+            <h3>Local and Private</h3>
+            <p>Everything runs directly in your browser. Your grades and result sheet never touch a server.</p>
           </div>
         </div>
       </section>

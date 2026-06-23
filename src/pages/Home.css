@@ -200,14 +200,19 @@
   color: var(--bg-color);
   font-weight: 900;
   text-decoration: none;
-  transition: all 0.3s;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 10px 40px -12px rgba(255, 255, 255, 0.1);
   width: 100%;
+  white-space: nowrap;
 }
 
 .hero-btn-primary:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px);
   opacity: 0.9;
+}
+
+.hero-btn-primary:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .hero-btn-primary .icon-slide {
@@ -230,14 +235,20 @@
   color: var(--text-color);
   font-weight: 900;
   text-decoration: none;
-  transition: all 0.3s;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
   backdrop-filter: blur(12px);
   width: 100%;
+  white-space: nowrap;
 }
 
 .hero-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.hero-btn-secondary:active {
+  transform: translateY(0) scale(0.98);
 }
 
 @media(min-width: 640px) {
