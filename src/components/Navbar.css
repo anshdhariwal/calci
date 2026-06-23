@@ -5,6 +5,8 @@
   z-index: 50;
   width: calc(100% - 24px);
   max-width: 100rem;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .nav-inner {
@@ -19,7 +21,7 @@
   padding-left: 1rem;
   padding-right: 1rem;
   box-shadow: 0 10px 40px rgba(53, 53, 53, 0.5);
-  backdrop-filter: blur(60px);
+  backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(60px);
 }
 
@@ -198,22 +200,22 @@
   height: 2.5rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.75rem;
-  border: 1px solid #1A2130;
-  background: #10141B;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--c-fill-sec);
+  box-shadow: inset 0 0 0 1px var(--c-b2);
   padding-left: 1rem;
   padding-right: 1rem;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #F5F5F2;
-  transition: all 0.2s ease;
+  color: var(--c-tx-primary);
+  transition: all 120ms ease;
   text-decoration: none;
 }
 
 .nav-btn-primary:hover {
-  background: #17202B;
-  box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.22), 0 8px 24px rgba(77, 163, 255, 0.12);
+  background: var(--c-fill-sec-h);
 }
 
 @media (min-width: 768px) {
@@ -234,7 +236,6 @@
   }
 }
 
-/* Toggle Styles */
 .toggle-track {
   position: relative;
   display: inline-flex;
@@ -287,10 +288,12 @@
   width: 36px;
   height: 20px;
 }
+
 .toggle-thumb-sm {
   width: 16px;
   height: 16px;
 }
+
 .toggle-icon-sm {
   width: 10px;
   height: 10px;
@@ -301,10 +304,12 @@
   width: 44px;
   height: 24px;
 }
+
 .toggle-thumb-md {
   width: 20px;
   height: 20px;
 }
+
 .toggle-icon-md {
   width: 12px;
   height: 12px;
@@ -315,10 +320,12 @@
   width: 52px;
   height: 28px;
 }
+
 .toggle-thumb-lg {
   width: 24px;
   height: 24px;
 }
+
 .toggle-icon-lg {
   width: 14px;
   height: 14px;
@@ -333,6 +340,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
