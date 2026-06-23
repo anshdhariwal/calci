@@ -4,28 +4,30 @@ const getApiKey = () => import.meta.env.VITE_OCR_SPACE_KEY;
 
 function normgrade(tok) {
   if (!tok) return null;
-  const cleaned = tok.replace(/[^A-Z0-9+\[\]]/gi, '').toUpperCase();
-  if (cleaned.length > 4) return null;
+  const raw = tok.trim();
+
+  if (/^(qualified|pass|absent|ab|na|n\/a|detained|withheld)$/i.test(raw)) return null;
+
+  const cleaned = raw.replace(/[^A-Z0-9+\[\]|]/gi, '').toUpperCase();
+  if (!cleaned || cleaned.length > 4) return null;
+
   const grades = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'E', 'F', 'I', 'X'];
   if (grades.includes(cleaned)) return cleaned;
+
+
   if (cleaned === '8') return 'B';
-  if (cleaned === '[3]' || cleaned === 'I3I' || cleaned === 'L3L' || cleaned === '|3|') return 'B';
+  if (cleaned === '[3]' || cleaned === 'I3I' || cleaned === 'L3L') return 'B';
+
   if (cleaned.startsWith('B')) {
-    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
-      return 'B+';
-    }
+    if (cleaned.includes('+') || /[84]/.test(cleaned.slice(1))) return 'B+';
     return 'B';
   }
   if (cleaned.startsWith('A')) {
-    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
-      return 'A+';
-    }
+    if (cleaned.includes('+') || /[84]/.test(cleaned.slice(1))) return 'A+';
     return 'A';
   }
   if (cleaned.startsWith('C')) {
-    if (cleaned.includes('+') || cleaned.includes('84') || cleaned.includes('8') || cleaned.includes('4')) {
-      return 'C+';
-    }
+    if (cleaned.includes('+') || /[84]/.test(cleaned.slice(1))) return 'C+';
     return 'C';
   }
   return null;
@@ -35,116 +37,172 @@ function normcredits(tok) {
   if (!tok) return null;
   const cleaned = tok.replace(/[^0-9.,]/g, '');
   if (!cleaned) return null;
-  const dotCleaned = cleaned.replace(',', '.');
-  if (dotCleaned.includes('.')) {
-    const val = parseFloat(dotCleaned);
-    if (val > 0 && val <= 10) return val;
-  }
-  if (dotCleaned.startsWith('15')) {
-    return 1.5;
-  }
-  const first = dotCleaned.charAt(0);
-  const digit = parseInt(first, 10);
-  if (digit >= 1 && digit <= 8) {
-    return digit;
-  }
-  const val = parseFloat(dotCleaned);
-  if (val > 0 && val <= 10) return val;
-  return null;
+  const dotted = cleaned.replace(',', '.');
+  if (dotted === '15') return 1.5;
+  const val = parseFloat(dotted);
+  if (isNaN(val) || val <= 0 || val > 10) return null;
+  return val;
 }
 
 function parseMarkdownTable(raw) {
-  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.startsWith('|'));
-  if (lines.length < 2) return [];
+  const allLines = raw.split(/\r?\n/).map(l => l.trim());
 
-  const rows = lines.map(line => {
-    const cells = line.split('|').map(c => c.trim());
-    return cells.slice(1, -1).map(text => ({ text, conf: 88 }));
-  });
-
-  return rows.filter(row => !row.every(c => /^-+$/.test(c.text)));
-}
-
-function mapCols(grid) {
-  let subjectColIdx = 1;
-  let creditColIdx = 4;
-  let gradeColIdx = 5;
-
-  for (let r = 0; r < Math.min(grid.length, 3); r++) {
-    const row = grid[r];
-    const texts = row.map(c => c.text.toLowerCase());
-
-    const hasSubject = texts.some(t => t.includes('subject') || t.includes('title') || t.includes('name') || t.includes('course'));
-    const hasCredit = texts.some(t => t.includes('credit') || t.includes('cr'));
-    const hasGrade = texts.some(t => t.includes('grade') || t.includes('gr'));
-
-    if (hasSubject || hasCredit || hasGrade) {
-      let sIdx = texts.findIndex(t => t.includes('name') || t.includes('title'));
-      if (sIdx === -1) {
-        sIdx = texts.findIndex(t => t.includes('subject') && !t.includes('code'));
-      }
-      if (sIdx === -1) {
-        sIdx = texts.findIndex(t => t.includes('subject') || t.includes('course'));
-      }
-      const cIdx = texts.findIndex(t => t.includes('credit') || t.includes('cr'));
-      const gIdx = texts.findIndex(t => t.includes('grade') || t.includes('gr'));
-
-      if (sIdx !== -1) subjectColIdx = sIdx;
-      if (cIdx !== -1) creditColIdx = cIdx;
-      if (gIdx !== -1) gradeColIdx = gIdx;
-
-      break;
+  const joined = [];
+  for (const line of allLines) {
+    if (line.startsWith('|')) {
+      joined.push(line);
+    } else if (joined.length > 0 && line.length > 0) {
+      joined[joined.length - 1] += ' ' + line;
     }
   }
 
-  const rows = [];
-  grid.forEach(row => {
-    const texts = row.map(c => c.text.toLowerCase());
-    const isHeader = texts.some(t => t.includes('subject') || t.includes('credit') || t.includes('grade') || t.includes('internal') || t.includes('external'));
-    if (isHeader) return;
+  if (joined.length < 2) return [];
 
-    const subject = row[subjectColIdx]?.text || '';
-    const credits = row[creditColIdx]?.text || '';
-    const grade = row[gradeColIdx]?.text || '';
-
-    if (subject || credits || grade) {
-      rows.push({ subject, credits, grade });
-    }
+  const parsed = joined.map(line => {
+    let clean = line;
+    if (!clean.endsWith('|')) clean += '|';
+    const cells = clean.split('|').map(c => c.trim());
+    return cells.slice(1, -1).map(text => ({ text, conf: 88 }));
   });
+
+  const rows = parsed.filter(row =>
+    row.length > 0 && !row.every(c => /^[-:]+$/.test(c.text) || c.text === '')
+  );
+
+  if (rows.length < 2) return [];
+
+  const maxCols = Math.max(...rows.map(r => r.length));
+  for (const row of rows) {
+    while (row.length < maxCols) row.push({ text: '', conf: 0 });
+  }
+
+  return rows;
+}
+
+function detectHeader(grid) {
+  for (let r = 0; r < Math.min(grid.length, 3); r++) {
+    const texts = grid[r].map(c => (c.text || '').toLowerCase());
+    const hit = texts.some(t =>
+      /subject|course|paper|name|title/.test(t) ||
+      /credit/.test(t) ||
+      /\bgrade\b/.test(t)
+    );
+    if (hit) return r;
+  }
+  return -1;
+}
+
+function mapCols(grid) {
+  if (!grid.length) return { rows: [] };
+
+  const colCount = grid[0].length;
+  const headerIdx = detectHeader(grid);
+
+  let subCol = -1, crCol = -1, grCol = -1;
+
+  if (headerIdx >= 0) {
+    const h = grid[headerIdx].map(c => (c.text || '').toLowerCase());
+
+    let s = h.findIndex(t => /\bname\b|\btitle\b/.test(t));
+    if (s === -1) s = h.findIndex(t => /subject/.test(t) && !/code/.test(t));
+    if (s === -1) s = h.findIndex(t => /subject|course|paper/.test(t));
+
+    const cr = h.findIndex(t => /credit/.test(t));
+    const gr = h.findIndex(t => /\bgrade\b/.test(t));
+
+    if (s !== -1) subCol = s;
+    if (cr !== -1) crCol = cr;
+    if (gr !== -1) grCol = gr;
+  }
+
+  const dataStart = headerIdx >= 0 ? headerIdx + 1 : 0;
+  const scores = Array.from({ length: colCount }, () => ({
+    grade: 0, credit: 0, text: 0, empty: 0, total: 0
+  }));
+
+  for (let r = dataStart; r < grid.length; r++) {
+    for (let c = 0; c < colCount; c++) {
+      const val = (grid[r][c]?.text || '').trim();
+      scores[c].total++;
+      if (!val) { scores[c].empty++; continue; }
+      if (normgrade(val) !== null) scores[c].grade++;
+      if (normcredits(val) !== null) scores[c].credit++;
+      if (/[a-zA-Z]{2,}/.test(val) && val.length > 4) scores[c].text++;
+    }
+  }
+
+  const pick = (type, exclude) => {
+    let best = -1, top = 0;
+    for (let c = 0; c < colCount; c++) {
+      if (exclude.has(c)) continue;
+      const filled = scores[c].total - scores[c].empty;
+      if (filled === 0) continue;
+      const ratio = scores[c][type] / filled;
+      if (ratio > top) { top = ratio; best = c; }
+    }
+    return top >= 0.3 ? best : -1;
+  };
+
+  const used = new Set([subCol, crCol, grCol].filter(x => x >= 0));
+
+  if (grCol === -1) { grCol = pick('grade', used); if (grCol >= 0) used.add(grCol); }
+  if (crCol === -1) { crCol = pick('credit', used); if (crCol >= 0) used.add(crCol); }
+  if (subCol === -1) {
+    let best = -1, top = 0;
+    for (let c = 0; c < colCount; c++) {
+      if (used.has(c)) continue;
+      const filled = scores[c].total - scores[c].empty;
+      if (filled === 0) continue;
+      const ratio = scores[c].text / filled;
+      if (ratio > top) { top = ratio; best = c; }
+    }
+    if (best >= 0) { subCol = best; used.add(best); }
+  }
+
+  if (subCol === -1 || crCol === -1 || grCol === -1) return { rows: [] };
+
+  const rows = [];
+  for (let r = dataStart; r < grid.length; r++) {
+    const row = grid[r];
+    const subject = (row[subCol]?.text || '').trim();
+    const credits = (row[crCol]?.text || '').trim();
+    const grade = (row[grCol]?.text || '').trim();
+    if (!subject && !credits && !grade) continue;
+    rows.push({ subject, credits, grade });
+  }
 
   return { rows };
 }
 
 function postprocess(rows) {
-  const courseCodeRegex = /\b\d{2}[A-Z]{2,4}[-]?\d{2,3}\b/gi;
-  const performanceLabels = /\b(Very Good|Outstanding|Excellent|Good|Average|Below Average|Fair|Poor|Pass|Fail|Absent|Incomplete)\b/gi;
+  const courseCodeRegex = /\b\d{2}[A-Z]{2,4}[-\s]?\d{2,3}\b/gi;
+  const perfLabels = /\b(Very Good|Outstanding|Excellent|Good|Average|Below Average|Fair|Poor|Pass|Fail|Absent|Incomplete|Qualified)\b/gi;
 
   const subjects = [];
   rows.forEach(row => {
-    const normGrade = normgrade(row.grade);
-    const normCredit = normcredits(row.credits);
+    const ng = normgrade(row.grade);
+    const nc = normcredits(row.credits);
 
-    if (normGrade && normCredit) {
-      let cleanedName = row.subject.trim();
-      cleanedName = cleanedName.replace(courseCodeRegex, '').trim();
-      cleanedName = cleanedName.replace(performanceLabels, '').trim();
-      cleanedName = cleanedName.replace(/[-,;:|]+$/, '').trim();
-      cleanedName = cleanedName.replace(/\s{2,}/g, ' ').trim();
+    if (ng && nc) {
+      let name = row.subject.trim();
+      name = name.replace(courseCodeRegex, '').trim();
+      name = name.replace(perfLabels, '').trim();
+      name = name.replace(/[-,;:|]+$/, '').trim();
+      name = name.replace(/\s{2,}/g, ' ').trim();
 
-      if (cleanedName.length >= 3) {
-        subjects.push({
-          id: Date.now() + subjects.length,
-          subject: cleanedName,
-          credits: String(normCredit),
-          grade: normGrade,
-          isManual: false,
-        });
-      }
+      subjects.push({
+        id: Date.now() + subjects.length,
+        subject: name,
+        credits: String(nc),
+        grade: ng,
+        isManual: false,
+      });
     }
   });
 
   return subjects;
 }
+
 
 export async function runOcrSpace(imageDataUrl, apiKey) {
   const form = new FormData();
@@ -192,9 +250,12 @@ export async function runOcrSpace(imageDataUrl, apiKey) {
   console.log('========== RAW OCR.SPACE OUTPUT ==========');
   console.log(rawText);
 
+  const noText = !rawText.trim() || rawText.includes('*[No text detected]*');
+  if (noText) throw new Error('No text detected in the image. Try a clearer photo.');
+
   const grid = parseMarkdownTable(rawText);
 
-  if (!grid.length) throw new Error('OCR.space returned no table data. Try cropping tighter.');
+  if (!grid.length) throw new Error('Could not parse table structure. Try cropping tighter around the grade table.');
 
   const { rows } = mapCols(grid);
   const corrected = postprocess(rows);
